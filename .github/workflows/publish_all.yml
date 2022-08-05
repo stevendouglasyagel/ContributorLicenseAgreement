@@ -33,15 +33,15 @@ jobs:
         echo "VERSION=$(./nbgv get-version -v SimpleVersion)" >> $GITHUB_ENV
 
     - name: Install dependencies
-      run: dotnet restore src/GitOps.CustomerLicenseAgreement.Core/GitOps.CustomerLicenseAgreement.Core.csproj
+      run: dotnet restore src/CustomerLicenseAgreement.Core/CustomerLicenseAgreement.Core.csproj
       env:
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     - name: Build
-      run: dotnet build src/GitOps.CustomerLicenseAgreement.Core/GitOps.CustomerLicenseAgreement.Core.csproj --configuration Release --no-restore
+      run: dotnet build src/CustomerLicenseAgreement.Core/CustomerLicenseAgreement.Core.csproj --configuration Release --no-restore
 
     - name: Pack nuget public release
-      run: dotnet pack src/GitOps.CustomerLicenseAgreement.Core/GitOps.CustomerLicenseAgreement.Core.csproj --configuration Release /p:PublicRelease=true /p:Version=${{env.VERSION}}
+      run: dotnet pack src/CustomerLicenseAgreement.Core/CustomerLicenseAgreement.Core.csproj --configuration Release /p:PublicRelease=true /p:Version=${{env.VERSION}}
       
     - name: Push package to NuGet
       if: github.ref == 'refs/heads/main'
-      run: dotnet nuget push src/GitOps.CustomerLicenseAgreement.Core/bin/Release/GitOps.CustomerLicenseAgreement.*.nupkg --api-key ${{ secrets.nugetKey }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push src/CustomerLicenseAgreement.Core/bin/Release/CustomerLicenseAgreement.*.nupkg --api-key ${{ secrets.nugetKey }} --source https://api.nuget.org/v3/index.json

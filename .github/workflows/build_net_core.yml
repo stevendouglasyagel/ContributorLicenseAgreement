@@ -25,14 +25,14 @@ jobs:
         dotnet-version: 5.0.401
 
     - name: Install dependencies
-      run: dotnet restore GitOps.CustomerLicenseAgreement.sln
+      run: dotnet restore CustomerLicenseAgreement.sln
       env:
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     - name: Build
-      run: dotnet build GitOps.CustomerLicenseAgreement.sln --configuration Release --no-restore
+      run: dotnet build CustomerLicenseAgreement.sln --configuration Release --no-restore
     
     - name: Test
-      run: dotnet test GitOps.CustomerLicenseAgreement.sln --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --settings coverlet.runsettings.xml -r ./coverlet-results
+      run: dotnet test CustomerLicenseAgreement.sln --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --settings coverlet.runsettings.xml -r ./coverlet-results
 
     - name: Generate coverage badge
       if: github.ref == 'refs/heads/main'
