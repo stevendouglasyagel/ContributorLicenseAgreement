@@ -351,6 +351,4 @@ MigrationBackup/
 
 .idea/
 
-.config/
-
 global.json
