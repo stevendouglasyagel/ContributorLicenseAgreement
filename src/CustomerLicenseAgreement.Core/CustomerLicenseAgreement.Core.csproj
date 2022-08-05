@@ -8,7 +8,7 @@
     <RootNamespace>CustomerLicenseAgreement.Core</RootNamespace>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <PackageId>GitOps.CustomerLicenseAgreement</PackageId>
+    <PackageId>CustomerLicenseAgreement</PackageId>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
 
