@@ -5,4 +5,4 @@
 
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("CustomerLicenseAgreement.Core.Tests")]
+[assembly: InternalsVisibleTo("ContributorLicenseAgreement.Core.Tests")]

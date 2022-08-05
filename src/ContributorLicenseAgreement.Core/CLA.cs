@@ -3,11 +3,11 @@
  *  Licensed under the Microsoft License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-namespace CustomerLicenseAgreement.Core
+namespace ContributorLicenseAgreement.Core
 {
     using System.Linq;
     using System.Threading.Tasks;
-    using CustomerLicenseAgreement.Core.Primitives.Data;
+    using ContributorLicenseAgreement.Core.Primitives.Data;
     using GitOps.Abstractions;
     using GitOps.Apps.Abstractions;
     using GitOps.Apps.Abstractions.AppEventHandler;
@@ -27,7 +27,7 @@ namespace CustomerLicenseAgreement.Core
             this.appEventHandlerOrchestrator = appEventHandlerOrchestrator;
         }
 
-        public override string Id { get; protected set; } = nameof(CustomerLicenseAgreement);
+        public override string Id { get; protected set; } = nameof(ContributorLicenseAgreement);
 
         public override async Task<AppOutput> Run(GitOpsPayload gitOpsPayload)
         {

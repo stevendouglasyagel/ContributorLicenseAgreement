@@ -349,8 +349,8 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
-.idea/.idea.GitOps.CustomerLicenseAgreement/.idea/
+.idea/
 
 .config/
 
-.idea/.idea.CustomerLicenseAgreement/.idea/
+global.json

@@ -1,23 +1,22 @@
-﻿namespace CustomerLicenseAgreement.Core.Handlers
+﻿namespace ContributorLicenseAgreement.Core.Handlers
 {
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using GitOps.Abstractions;
     using GitOps.Apps.Abstractions.AppEventHandler;
     using GitOps.Apps.Abstractions.Models;
-    using GitOps.Apps.Abstractions.Models.Issue;
 
-    public sealed class PushHandler : IAppEventHandler
+    internal class PullRequestHandler : IAppEventHandler
     {
-        public PushHandler()
+        public PullRequestHandler()
         {
             // Do nothing
         }
 
-        public PlatformEventActions EventType => PlatformEventActions.Push;
+        public PlatformEventActions EventType => PlatformEventActions.Pull_Request;
 
         public async Task<object> HandleEvent(GitOpsPayload gitOpsPayload, AppOutput appOutput, params object[] parameters)
         {
+            // TODO: Implement app behaviour on failure
             return await Task.FromResult(appOutput);
         }
     }

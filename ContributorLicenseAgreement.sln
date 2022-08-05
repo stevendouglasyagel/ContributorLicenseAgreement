@@ -5,9 +5,9 @@ VisualStudioVersion = 16.6.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{21327029-795F-420B-BA22-3BF977786963}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerLicenseAgreement.Core", "src\CustomerLicenseAgreement.Core\CustomerLicenseAgreement.Core.csproj", "{0F7E7D73-0E96-477D-B52C-18185FE04A32}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContributorLicenseAgreement.Core", "src\ContributorLicenseAgreement.Core\ContributorLicenseAgreement.Core.csproj", "{0F7E7D73-0E96-477D-B52C-18185FE04A32}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerLicenseAgreement.Core.Tests", "src\CustomerLicenseAgreement.Core.Tests\CustomerLicenseAgreement.Core.Tests.csproj", "{CEA66F20-F84F-4B40-BDC2-C5DAC68A2ECC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContributorLicenseAgreement.Core.Tests", "src\ContributorLicenseAgreement.Core.Tests\ContributorLicenseAgreement.Core.Tests.csproj", "{CEA66F20-F84F-4B40-BDC2-C5DAC68A2ECC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
