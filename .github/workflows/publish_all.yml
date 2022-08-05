@@ -1,0 +1,47 @@
+name: Publish all resources
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+
+jobs:
+  publish-all-resources:
+
+    runs-on: ubuntu-latest
+    
+    environment: prod
+    
+    env:
+      DOCKER_IMAGE_BASE_NAME: customerlicenseagreement
+    
+    steps:
+    - uses: actions/checkout@v2
+      with:
+          fetch-depth: 0
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.401
+
+    - name: Install nbgv and set version
+      id: version
+      run: |
+        dotnet tool install --tool-path . nbgv
+        echo "VERSION=$(./nbgv get-version -v SimpleVersion)" >> $GITHUB_ENV
+
+    - name: Install dependencies
+      run: dotnet restore src/GitOps.CustomerLicenseAgreement.Core/GitOps.CustomerLicenseAgreement.Core.csproj
+      env:
+        DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+    - name: Build
+      run: dotnet build src/GitOps.CustomerLicenseAgreement.Core/GitOps.CustomerLicenseAgreement.Core.csproj --configuration Release --no-restore
+
+    - name: Pack nuget public release
+      run: dotnet pack src/GitOps.CustomerLicenseAgreement.Core/GitOps.CustomerLicenseAgreement.Core.csproj --configuration Release /p:PublicRelease=true /p:Version=${{env.VERSION}}
+      
+    - name: Push package to NuGet
+      if: github.ref == 'refs/heads/main'
+      run: dotnet nuget push src/GitOps.CustomerLicenseAgreement.Core/bin/Release/GitOps.CustomerLicenseAgreement.*.nupkg --api-key ${{ secrets.nugetKey }} --source https://api.nuget.org/v3/index.json

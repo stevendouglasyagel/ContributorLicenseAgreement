@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>true</IsPackable>
+    <TargetFramework>net5.0</TargetFramework>
+    <DebugType>embedded</DebugType>
+    <RootNamespace>CustomerLicenseAgreement.Core</RootNamespace>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <PackageId>GitOps.CustomerLicenseAgreement</PackageId>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Table.mustache" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Table.mustache" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitOps.Apps.Abstractions" Version="*" />
+    <PackageReference Include="GitOps.Apps.Debugger" Version="*" />
+    <PackageReference Include="GitOps.Primitives" Version="*" />
+    <PackageReference Include="Polly" Version="*" />
+    <PackageReference Include="Stubble.Core" Version="1.9.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.4.244" />
+  </ItemGroup>
+
+  <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
+    </ItemGroup>
+  </Target>
+
+</Project>

@@ -1,0 +1,14 @@
+`{{NumFiles}}` file(s) have code issues.
+
+<table>
+    <tr>
+        <th scope="col">File</th>
+        <th scope="col">Issues</th>
+    </tr>
+    {{#FilesCC}}
+    <tr>
+        <td><code>{{{FileName}}}</code></td>
+        <td>{{{Issue}}}</td>
+    </tr>
+    {{/FilesCC}}
+</table>
