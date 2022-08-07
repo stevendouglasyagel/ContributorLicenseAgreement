@@ -3,7 +3,7 @@
  *  Licensed under the Microsoft License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-namespace CustomerLicenseAgreement.Core
+namespace ContributorLicenseAgreement.Core
 {
     using GitOps.Abstractions;
 

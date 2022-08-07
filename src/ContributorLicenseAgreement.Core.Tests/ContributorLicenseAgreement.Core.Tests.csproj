@@ -6,7 +6,6 @@
         <IsPackable>false</IsPackable>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
-        <RootNamespace>CustomerLicenseAgreement.Core.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -24,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\CustomerLicenseAgreement.Core\CustomerLicenseAgreement.Core.csproj" />
+      <ProjectReference Include="..\ContributorLicenseAgreement.Core\ContributorLicenseAgreement.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>

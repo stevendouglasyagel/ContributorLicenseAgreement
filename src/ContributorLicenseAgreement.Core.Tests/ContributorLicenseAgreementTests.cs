@@ -3,13 +3,13 @@
  *  Licensed under the Microsoft License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-namespace CustomerLicenseAgreement.Core.Tests
+namespace ContributorLicenseAgreement.Core.Tests
 {
     using System.Diagnostics.CodeAnalysis;
     using Xunit;
 
     [ExcludeFromCodeCoverage]
-    public class CustomerLicenseAgreementTests
+    public class ContributorLicenseAgreementTests
     {
         [Fact]
         public void PrimitiveDataTest()

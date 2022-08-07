@@ -5,10 +5,9 @@
     <IsPackable>true</IsPackable>
     <TargetFramework>net5.0</TargetFramework>
     <DebugType>embedded</DebugType>
-    <RootNamespace>CustomerLicenseAgreement.Core</RootNamespace>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <PackageId>GitOps.CustomerLicenseAgreement</PackageId>
+    <PackageId>CustomerLicenseAgreement</PackageId>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
 

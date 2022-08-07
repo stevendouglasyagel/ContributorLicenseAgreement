@@ -1,7 +1,7 @@
-﻿namespace CustomerLicenseAgreement.Core
+﻿namespace ContributorLicenseAgreement.Core
 {
     using System.Diagnostics.CodeAnalysis;
-    using CustomerLicenseAgreement.Core.Handlers;
+    using ContributorLicenseAgreement.Core.Handlers;
     using GitOps.Apps.Abstractions;
     using GitOps.Clients.Azure.BlobStorage;
     using GitOps.Primitives;
@@ -10,7 +10,7 @@
     using Microsoft.Extensions.DependencyInjection.Extensions;
 
     [ExcludeFromCodeCoverage]
-    public sealed class CustomerLicenseAgreementStartup : AppStartupBase
+    public sealed class ContributorLicenseAgreementStartup : AppStartupBase
     {
         /// <summary>
         /// This method is called when the app is initialized by the GitOps app server.
