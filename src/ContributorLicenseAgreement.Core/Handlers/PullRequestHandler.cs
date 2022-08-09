@@ -19,11 +19,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Apps.Abstractions.AppStates;
     using GitOps.Apps.Abstractions.Models;
     using GitOps.Clients.Aad;
-    using GitOps.Clients.GitHub.Models;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Graph;
     using Stubble.Core.Builders;
-    using YamlDotNet.RepresentationModel;
     using YamlDotNet.Serialization;
     using YamlDotNet.Serialization.NamingConventions;
 
@@ -67,8 +64,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             if (NeedsLicense(primitive, gitOpsPayload.PullRequest))
             {
-                // var cla = await HasSignedCla(appOutput, gitOpsPayload.PullRequest.User);
-                var cla = await HasSignedCla(appOutput, "JohannesLampel");
+                // var cla = await HasSignedCla(appOutput, "JohannesLampel");
+                var cla = await HasSignedCla(appOutput, gitOpsPayload.PullRequest.User);
 
                 appOutput.Comment = await GenerateComment(primitive, gitOpsPayload, cla);
 
