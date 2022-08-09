@@ -36,10 +36,12 @@ namespace ContributorLicenseAgreement.Core
                 Conclusion = Conclusion.Neutral
             };
 
+            var tmp = await primitiveCollection.Get(gitOpsPayload);
+
             // grab all the primitives, usually each repository will have 2, one repo level and another one org level
             var primitives = (await primitiveCollection.Get(gitOpsPayload))
-                .Where(p => p is CLAPrimitive)
-                .Cast<CLAPrimitive>();
+                .Where(p => p is ClaPrimitive)
+                .Cast<ClaPrimitive>();
 
             await appEventHandlerOrchestrator.HandleEvent(gitOpsPayload, appOutput, primitives, Id);
 
