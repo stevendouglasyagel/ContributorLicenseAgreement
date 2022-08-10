@@ -19,27 +19,37 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Apps.Abstractions.AppStates;
     using GitOps.Apps.Abstractions.Models;
     using GitOps.Clients.Aad;
+    using GitOps.Clients.GitHub;
+    using GitOps.Clients.GitHub.Configuration;
     using Microsoft.Extensions.Logging;
+    using Octokit;
     using Stubble.Core.Builders;
     using YamlDotNet.Serialization;
     using YamlDotNet.Serialization.NamingConventions;
+    using PullRequest = GitOps.Abstractions.PullRequest;
 
     internal class PullRequestHandler : IAppEventHandler
     {
+        private readonly IGitHubClientAdapterFactory factory;
         private readonly AppState appState;
         private readonly IAadRequestClient aadRequestClient;
         private readonly GitHubLinkRestClient gitHubLinkClient;
+        private readonly PlatformAppFlavorSettings flavorSettings;
         private readonly ILogger<CLA> logger;
 
         public PullRequestHandler(
+            IGitHubClientAdapterFactory factory,
             AppState appState,
             IAadRequestClient aadRequestClient,
             GitHubLinkRestClient gitHubLinkClient,
+            PlatformAppFlavorSettings flavorSettings,
             ILogger<CLA> logger)
         {
+            this.factory = factory;
             this.appState = appState;
             this.aadRequestClient = aadRequestClient;
             this.gitHubLinkClient = gitHubLinkClient;
+            this.flavorSettings = flavorSettings;
             this.logger = logger;
         }
 
@@ -69,24 +79,41 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
                 appOutput.Comment = await GenerateComment(primitive, gitOpsPayload, cla);
 
-                appOutput.Check = new Check
+                var client = await factory.GetGitHubClientAdapterAsync(
+                    gitOpsPayload.PlatformContext.InstallationId,
+                    gitOpsPayload.PlatformContext.Dns);
+
+                var check = await client.CreateCheckRunAsync(
+                    long.Parse(gitOpsPayload.PullRequest.RepositoryId),
+                    new NewCheckRun(Constants.CheckName, gitOpsPayload.PullRequest.Sha)
+                    {
+                        Status = CheckStatus.InProgress,
+                        Output = new NewCheckRunOutput("cla", string.Empty)
+                    });
+
+                appOutput.States ??= new States
                 {
-                    Title = nameof(CLA),
-                    Summary = "CLA check.",
-                    Conclusion = cla ? Conclusion.Success : Conclusion.Failure
+                    StateCollection = new System.Collections.Generic.Dictionary<string, object>()
                 };
 
-                appOutput.Conclusion = cla ? Conclusion.Success : Conclusion.Failure;
+                appOutput.States.StateCollection.Add(
+                        $"{Constants.Check}-{gitOpsPayload.PullRequest.User}", await AddCheckToStates(check, gitOpsPayload));
             }
-            else
-            {
-                appOutput.Conclusion = Conclusion.Success;
-            }
+
+            appOutput.Conclusion = Conclusion.Success;
 
             return appOutput;
         }
 
-        private static async Task<Comment> GenerateComment(ClaPrimitive primitive, GitOpsPayload payload, bool cla)
+        private static bool NeedsLicense(ClaPrimitive primitive, PullRequest pullRequest)
+        {
+            return !primitive.SkipUsers.Contains(pullRequest.Sender)
+                   && !primitive.SkipOrgs.Contains(pullRequest.OrganizationName)
+                   && pullRequest.Files.Sum(f => f.Changes) >= primitive.MinimalChangeRequired.CodeLines
+                   && pullRequest.Files.Count >= primitive.MinimalChangeRequired.Files;
+        }
+
+        private async Task<Comment> GenerateComment(ClaPrimitive primitive, GitOpsPayload payload, bool cla)
         {
             if (cla)
             {
@@ -99,7 +126,9 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             var mustacheParams = new
             {
-                Content = agreement.Cla.Content
+                User = payload.PullRequest.Sender,
+                Content = agreement.Cla.Content,
+                Bot = flavorSettings[payload.PlatformContext.Dns].Name
             };
 
             var name = $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA.mustache";
@@ -113,17 +142,9 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             return new Comment
             {
-                Badge = new Badge(nameof(CLA), "CLA not signed", Severity.Warning),
-                MarkdownText = details
+                MarkdownText = details,
+                CommentType = CommentType.RawComment
             };
-        }
-
-        private static bool NeedsLicense(ClaPrimitive primitive, PullRequest pullRequest)
-        {
-            return !primitive.SkipUsers.Contains(pullRequest.Sender)
-                   && !primitive.SkipOrgs.Contains(pullRequest.OrganizationName)
-                   && pullRequest.Files.Sum(f => f.Changes) >= primitive.MinimalChangeRequired.CodeLines
-                   && pullRequest.Files.Count >= primitive.MinimalChangeRequired.Files;
         }
 
         private async Task<bool> HasSignedCla(AppOutput appOutput, string gitHubUser)
@@ -177,6 +198,19 @@ namespace ContributorLicenseAgreement.Core.Handlers
                     StateCollection = new System.Collections.Generic.Dictionary<string, object> { { gitHubUser, cla } }
                 };
             }
+        }
+
+        private async Task<List<long>> AddCheckToStates(CheckRun check, GitOpsPayload payload)
+        {
+            var key = $"{Constants.Check}-{payload.PullRequest.User}";
+
+            var checks = await appState.ReadState<List<long>>(key);
+
+            checks = checks ?? new List<long>();
+
+            checks.Add(check.Id);
+
+            return checks;
         }
     }
 }

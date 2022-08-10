@@ -5,6 +5,7 @@
     using ContributorLicenseAgreement.Core.Handlers;
     using GitOps.Apps.Abstractions;
     using GitOps.Clients.Azure.BlobStorage;
+    using GitOps.Clients.GitHub.Configuration;
     using GitOps.Common.Library.Extensions;
     using GitOps.Primitives;
     using Microsoft.Extensions.Configuration;
@@ -37,6 +38,9 @@
             serviceCollection.AddSingleton<PrimitiveCollection>();
             serviceCollection.RegisterAad(configuration);
             serviceCollection.AddSingleton<PullRequestHandler>();
+            serviceCollection.AddSingleton<IssueCommentHandler>();
+            serviceCollection.Configure<PlatformAppFlavorSettings>(
+                configuration.GetSection(nameof(PlatformAppFlavorSettings)));
         }
     }
 }
