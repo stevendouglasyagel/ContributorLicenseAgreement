@@ -7,7 +7,7 @@
     <DebugType>embedded</DebugType>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <PackageId>CustomerLicenseAgreement</PackageId>
+    <PackageId>ContributorLicenseAgreement</PackageId>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
 
