@@ -65,7 +65,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             if (NeedsLicense(primitive, gitOpsPayload.PullRequest))
             {
-                // var hasCla = await HasSignedCla(appOutput, "JohannesLampel");
                 var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload);
 
                 appOutput.Comment = await gitHubHelper.GenerateCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sender);
