@@ -9,5 +9,7 @@ namespace ContributorLicenseAgreement.Core
     {
         internal const string CheckName = "microsoft/license";
         internal const string Check = "Check";
+        internal const string CheckTitle = "cla";
+        internal const string CheckSummary = "This check verifies that the author has agreed to a CLA with Microsoft.";
     }
 }

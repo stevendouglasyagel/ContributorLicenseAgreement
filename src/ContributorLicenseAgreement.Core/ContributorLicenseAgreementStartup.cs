@@ -3,6 +3,7 @@
     using System.Diagnostics.CodeAnalysis;
     using ContributorLicenseAgreement.Core.GitHubLinkClient;
     using ContributorLicenseAgreement.Core.Handlers;
+    using ContributorLicenseAgreement.Core.Handlers.Helpers;
     using GitOps.Apps.Abstractions;
     using GitOps.Clients.Azure.BlobStorage;
     using GitOps.Clients.GitHub.Configuration;
@@ -39,6 +40,7 @@
             serviceCollection.RegisterAad(configuration);
             serviceCollection.AddSingleton<PullRequestHandler>();
             serviceCollection.AddSingleton<IssueCommentHandler>();
+            serviceCollection.AddSingleton<GitHubHelper>();
             serviceCollection.Configure<PlatformAppFlavorSettings>(
                 configuration.GetSection(nameof(PlatformAppFlavorSettings)));
         }

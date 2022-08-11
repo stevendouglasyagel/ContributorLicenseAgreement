@@ -5,10 +5,9 @@
 
 namespace ContributorLicenseAgreement.Core.Handlers
 {
-    using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using ContributorLicenseAgreement.Core.Handlers.Helpers;
     using GitOps.Abstractions;
     using GitOps.Apps.Abstractions.AppEventHandler;
     using GitOps.Apps.Abstractions.AppStates;
@@ -16,24 +15,26 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Clients.GitHub;
     using GitOps.Clients.GitHub.Configuration;
     using Microsoft.Extensions.Logging;
-    using Octokit;
 
     public class IssueCommentHandler : IAppEventHandler
     {
         private readonly IGitHubClientAdapterFactory factory;
         private readonly AppState appState;
         private readonly PlatformAppFlavorSettings flavorSettings;
+        private readonly GitHubHelper gitHubHelper;
         private readonly ILogger<CLA> logger;
 
         public IssueCommentHandler(
             IGitHubClientAdapterFactory factory,
             AppState appState,
             PlatformAppFlavorSettings flavorSettings,
+            GitHubHelper gitHubHelper,
             ILogger<CLA> logger)
         {
             this.factory = factory;
             this.appState = appState;
             this.flavorSettings = flavorSettings;
+            this.gitHubHelper = gitHubHelper;
             this.logger = logger;
         }
 
@@ -46,14 +47,15 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
-            if (!await CheckSender(gitOpsPayload))
+            if (!await CheckSenderAsync(gitOpsPayload))
             {
                 return appOutput;
             }
 
             if (ParseComment(gitOpsPayload.PullRequestComment.Body, gitOpsPayload.PlatformContext.Dns))
             {
-                await UpdateChecks(gitOpsPayload);
+                gitHubHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput);
+                await gitHubHelper.UpdateChecksAsync(gitOpsPayload, gitOpsPayload.PullRequestComment.User);
             }
 
             appOutput.Conclusion = Conclusion.Success;
@@ -61,19 +63,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             return appOutput;
         }
 
-        private bool ParseComment(string comment, string host)
-        {
-            var tokens = comment.Split(' ');
-
-            if (tokens.Length > 3 || tokens.Length < 2)
-            {
-                return false;
-            }
-
-            return tokens.First().StartsWith($"@{flavorSettings[host].Name}") && tokens[1].Equals("--agree");
-        }
-
-        private async Task<bool> CheckSender(GitOpsPayload gitOpsPayload)
+        private async Task<bool> CheckSenderAsync(GitOpsPayload gitOpsPayload)
         {
             var client = await factory.GetGitHubClientAdapterAsync(
                 gitOpsPayload.PlatformContext.InstallationId,
@@ -86,26 +76,16 @@ namespace ContributorLicenseAgreement.Core.Handlers
             return pr.User.Login.Equals(gitOpsPayload.PullRequestComment.User);
         }
 
-        private async Task UpdateChecks(GitOpsPayload gitOpsPayload)
+        private bool ParseComment(string comment, string host)
         {
-            var client = await factory.GetGitHubClientAdapterAsync(
-                gitOpsPayload.PlatformContext.InstallationId,
-                gitOpsPayload.PlatformContext.Dns);
+            var tokens = comment.Split(' ');
 
-            var checkIds = await appState.ReadState<List<long>>($"{Constants.Check}-{gitOpsPayload.PullRequestComment.User}");
-
-            foreach (var checkId in checkIds)
+            if (tokens.Length > 3 || tokens.Length < 2)
             {
-                await client.UpdateCheckRunAsync(
-                    long.Parse(gitOpsPayload.PullRequestComment.RepositoryId),
-                    checkId,
-                    new CheckRunUpdate
-                    {
-                        Status = CheckStatus.Completed,
-                        Conclusion = Enum.Parse<CheckConclusion>(Conclusion.Success.ToString(), true),
-                        Output = new NewCheckRunOutput("cla", string.Empty)
-                    });
+                return false;
             }
+
+            return tokens.First().StartsWith($"@{flavorSettings[host].Name}") && tokens[1].Equals("--agree");
         }
     }
 }
