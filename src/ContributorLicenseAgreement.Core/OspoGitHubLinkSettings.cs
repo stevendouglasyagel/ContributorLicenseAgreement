@@ -5,7 +5,7 @@
 
 namespace ContributorLicenseAgreement.Core
 {
-    public class GitHubLinkSettings
+    public class OspoGitHubLinkSettings
     {
         public string ApiUrl { get; set; }
 

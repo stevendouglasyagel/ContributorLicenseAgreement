@@ -31,7 +31,7 @@
                     azureBlobSettings.AccountName,
                     azureBlobSettings.AccountKey,
                     true));
-            var gitHubLinkSettings = configuration.GetSection(nameof(GitHubLinkSettings)).Get<GitHubLinkSettings>();
+            var gitHubLinkSettings = configuration.GetSection(nameof(OspoGitHubLinkSettings)).Get<OspoGitHubLinkSettings>();
             serviceCollection.TryAddSingleton<GitHubLinkRestClient>(p => new GitHubLinkRestClient(
                 gitHubLinkSettings.ApiUrl,
                 gitHubLinkSettings.ApiToken,
