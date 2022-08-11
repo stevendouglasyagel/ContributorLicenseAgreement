@@ -5,7 +5,6 @@
 
 namespace ContributorLicenseAgreement.Core.Handlers
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -18,9 +17,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Apps.Abstractions.Models;
     using GitOps.Clients.Aad;
     using GitOps.Clients.GitHub;
-    using GitOps.Clients.GitHub.Configuration;
     using Microsoft.Extensions.Logging;
-    using Octokit;
     using PullRequest = GitOps.Abstractions.PullRequest;
 
     internal class PullRequestHandler : IAppEventHandler
@@ -29,7 +26,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
         private readonly AppState appState;
         private readonly IAadRequestClient aadRequestClient;
         private readonly GitHubLinkRestClient gitHubLinkClient;
-        private readonly PlatformAppFlavorSettings flavorSettings;
         private readonly GitHubHelper gitHubHelper;
         private readonly ILogger<CLA> logger;
 
@@ -38,7 +34,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
             AppState appState,
             IAadRequestClient aadRequestClient,
             GitHubLinkRestClient gitHubLinkClient,
-            PlatformAppFlavorSettings flavorSettings,
             GitHubHelper gitHubHelper,
             ILogger<CLA> logger)
         {
@@ -46,7 +41,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
             this.appState = appState;
             this.aadRequestClient = aadRequestClient;
             this.gitHubLinkClient = gitHubLinkClient;
-            this.flavorSettings = flavorSettings;
             this.gitHubHelper = gitHubHelper;
             this.logger = logger;
         }
@@ -67,7 +61,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
-            // ToDo: what happens if we have conflicting primitives?
             var primitive = primitivesData.First();
 
             if (NeedsLicense(primitive, gitOpsPayload.PullRequest))
@@ -75,24 +68,21 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 // var hasCla = await HasSignedCla(appOutput, "JohannesLampel");
                 var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload);
 
-                appOutput.Comment = await gitHubHelper.GenerateCommentAsync(primitive, gitOpsPayload, hasCla);
+                appOutput.Comment = await gitHubHelper.GenerateCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sender);
 
-                var check = await CreateCheckAsync(gitOpsPayload, hasCla);
+                await gitHubHelper.CreateCheckAsync(gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sha);
 
-                if (!hasCla)
+                appOutput.States ??= new States
                 {
-                    appOutput.States ??= new States
-                    {
-                        StateCollection = new System.Collections.Generic.Dictionary<string, object>()
-                    };
+                    StateCollection = new System.Collections.Generic.Dictionary<string, object>()
+                };
 
-                    appOutput.States.StateCollection.Add(
-                            $"{Constants.Check}-{gitOpsPayload.PullRequest.User}", await AddCheckToStatesAsync(check, gitOpsPayload));
-                }
+                appOutput.States.StateCollection.Add(
+                    $"{Constants.Check}-{gitOpsPayload.PullRequest.User}", await AddCheckToStatesAsync(gitOpsPayload));
             }
             else
             {
-                await CreateCheckAsync(gitOpsPayload, true);
+                await gitHubHelper.CreateCheckAsync(gitOpsPayload, true, gitOpsPayload.PullRequest.Sha);
             }
 
             appOutput.Conclusion = Conclusion.Success;
@@ -106,27 +96,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
                    && !primitive.SkipOrgs.Contains(pullRequest.OrganizationName)
                    && pullRequest.Files.Sum(f => f.Changes) >= primitive.MinimalChangeRequired.CodeLines
                    && pullRequest.Files.Count >= primitive.MinimalChangeRequired.Files;
-        }
-
-        private async Task<CheckRun> CreateCheckAsync(GitOpsPayload gitOpsPayload, bool hasCla)
-        {
-            var client = await factory.GetGitHubClientAdapterAsync(
-                gitOpsPayload.PlatformContext.InstallationId,
-                gitOpsPayload.PlatformContext.Dns);
-
-            var check = new NewCheckRun(Constants.CheckName, gitOpsPayload.PullRequest.Sha)
-            {
-                Status = hasCla ? CheckStatus.Completed : CheckStatus.InProgress,
-                Output = new NewCheckRunOutput(Constants.CheckTitle, Constants.CheckSummary)
-            };
-
-            if (hasCla)
-            {
-                check.Conclusion = Enum.Parse<CheckConclusion>(Conclusion.Success.ToString(), true);
-            }
-
-            return await client.CreateCheckRunAsync(
-                long.Parse(gitOpsPayload.PullRequest.RepositoryId), check);
         }
 
         private async Task<bool> HasSignedClaAsync(AppOutput appOutput, GitOpsPayload gitOpsPayload)
@@ -149,9 +118,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                     return false;
                 }
 
-                cla = gitHubHelper.CreateCla(true, gitHubUser, appOutput, aadUser.PrincipalName);
-
-                await gitHubHelper.UpdateChecksAsync(gitOpsPayload, gitHubUser);
+                cla = gitHubHelper.CreateCla(true, gitHubUser, appOutput, msftMail: aadUser.PrincipalName);
             }
 
             if (!cla.Employee)
@@ -166,15 +133,15 @@ namespace ContributorLicenseAgreement.Core.Handlers
             }
         }
 
-        private async Task<List<long>> AddCheckToStatesAsync(CheckRun check, GitOpsPayload payload)
+        private async Task<List<string>> AddCheckToStatesAsync(GitOpsPayload payload)
         {
             var key = $"{Constants.Check}-{payload.PullRequest.User}";
 
-            var checks = await appState.ReadState<List<long>>(key);
+            var checks = await appState.ReadState<List<string>>(key);
 
-            checks = checks ?? new List<long>();
+            checks = checks ?? new List<string>();
 
-            checks.Add(check.Id);
+            checks.Add(payload.PullRequest.Sha);
 
             return checks;
         }

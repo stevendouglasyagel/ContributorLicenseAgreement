@@ -51,7 +51,38 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             this.logger = logger;
         }
 
-        internal async Task<Comment> GenerateCommentAsync(ClaPrimitive primitive, GitOpsPayload payload, bool cla)
+        internal async Task UpdateChecksAsync(GitOpsPayload gitOpsPayload, bool hasCla, string gitHubUser)
+        {
+            var shas = await appState.ReadState<List<string>>($"{Constants.Check}-{gitHubUser}");
+
+            foreach (var sha in shas)
+            {
+                await CreateCheckAsync(gitOpsPayload, hasCla, sha);
+            }
+        }
+
+        internal async Task<CheckRun> CreateCheckAsync(GitOpsPayload gitOpsPayload, bool hasCla, string sha)
+        {
+            var client = await factory.GetGitHubClientAdapterAsync(
+                gitOpsPayload.PlatformContext.InstallationId,
+                gitOpsPayload.PlatformContext.Dns);
+
+            var check = new NewCheckRun(Constants.CheckName, sha)
+            {
+                Status = hasCla ? CheckStatus.Completed : CheckStatus.Queued,
+                Output = new NewCheckRunOutput(hasCla ? Constants.CheckSuccessTitle : Constants.CheckInProgressTitle, Constants.CheckSummary)
+            };
+
+            if (hasCla)
+            {
+                check.Conclusion = Enum.Parse<CheckConclusion>(Conclusion.Success.ToString(), true);
+            }
+
+            return await client.CreateCheckRunAsync(
+                long.Parse(gitOpsPayload.PlatformContext.RepositoryId), check);
+        }
+
+        internal async Task<Comment> GenerateCommentAsync(ClaPrimitive primitive, GitOpsPayload payload, bool cla, string gitHubUser)
         {
             if (cla)
             {
@@ -64,7 +95,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
 
             var mustacheParams = new
             {
-                User = payload.PullRequest.Sender,
+                User = gitHubUser,
                 CLA = agreement.Cla.Content,
                 Bot = flavorSettings[payload.PlatformContext.Dns].Name
             };
@@ -101,29 +132,17 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             return cla;
         }
 
-        internal async Task UpdateChecksAsync(GitOpsPayload gitOpsPayload, string gitHubUser)
+        internal async Task<SignedCla> ExpireCla(string gitHubUser, AppOutput appOutput)
         {
-            var client = await factory.GetGitHubClientAdapterAsync(
-                gitOpsPayload.PlatformContext.InstallationId,
-                gitOpsPayload.PlatformContext.Dns);
+            var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(gitHubUser);
+            cla.Expires = System.DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
-            var checkIds = await appState.ReadState<List<long>>($"{Constants.Check}-{gitHubUser}");
+            appOutput.States = GenerateStates(gitHubUser, cla);
 
-            foreach (var checkId in checkIds)
-            {
-                await client.UpdateCheckRunAsync(
-                    long.Parse(gitOpsPayload.PlatformContext.RepositoryId),
-                    checkId,
-                    new CheckRunUpdate
-                    {
-                        Status = CheckStatus.Completed,
-                        Conclusion = Enum.Parse<CheckConclusion>(Conclusion.Success.ToString(), true),
-                        Output = new NewCheckRunOutput(Constants.CheckTitle, Constants.CheckSummary)
-                    });
-            }
+            return cla;
         }
 
-        internal States GenerateStates(string gitHubUser, ContributorLicenseAgreement.Core.Handlers.Model.SignedCla cla)
+        private States GenerateStates(string gitHubUser, ContributorLicenseAgreement.Core.Handlers.Model.SignedCla cla)
         {
             {
                 return new States

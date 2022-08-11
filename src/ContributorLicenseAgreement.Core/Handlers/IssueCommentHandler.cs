@@ -5,12 +5,14 @@
 
 namespace ContributorLicenseAgreement.Core.Handlers
 {
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using ContributorLicenseAgreement.Core.Handlers.Helpers;
+    using ContributorLicenseAgreement.Core.Handlers.Model;
+    using ContributorLicenseAgreement.Core.Primitives.Data;
     using GitOps.Abstractions;
     using GitOps.Apps.Abstractions.AppEventHandler;
-    using GitOps.Apps.Abstractions.AppStates;
     using GitOps.Apps.Abstractions.Models;
     using GitOps.Clients.GitHub;
     using GitOps.Clients.GitHub.Configuration;
@@ -19,20 +21,17 @@ namespace ContributorLicenseAgreement.Core.Handlers
     public class IssueCommentHandler : IAppEventHandler
     {
         private readonly IGitHubClientAdapterFactory factory;
-        private readonly AppState appState;
         private readonly PlatformAppFlavorSettings flavorSettings;
         private readonly GitHubHelper gitHubHelper;
         private readonly ILogger<CLA> logger;
 
         public IssueCommentHandler(
             IGitHubClientAdapterFactory factory,
-            AppState appState,
             PlatformAppFlavorSettings flavorSettings,
             GitHubHelper gitHubHelper,
             ILogger<CLA> logger)
         {
             this.factory = factory;
-            this.appState = appState;
             this.flavorSettings = flavorSettings;
             this.gitHubHelper = gitHubHelper;
             this.logger = logger;
@@ -47,15 +46,36 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
+            if (parameters.Length == 0)
+            {
+                logger.LogInformation("No primitive available");
+                return appOutput;
+            }
+
+            var primitivesData = (IEnumerable<ClaPrimitive>)parameters[0];
+            if (!primitivesData.Any())
+            {
+                return appOutput;
+            }
+
+            var primitive = primitivesData.First();
+
             if (!await CheckSenderAsync(gitOpsPayload))
             {
                 return appOutput;
             }
 
-            if (ParseComment(gitOpsPayload.PullRequestComment.Body, gitOpsPayload.PlatformContext.Dns))
+            switch (ParseComment(gitOpsPayload.PullRequestComment.Body, gitOpsPayload.PlatformContext.Dns))
             {
-                gitHubHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput);
-                await gitHubHelper.UpdateChecksAsync(gitOpsPayload, gitOpsPayload.PullRequestComment.User);
+                case CommentAction.Agree:
+                    gitHubHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput);
+                    await gitHubHelper.UpdateChecksAsync(gitOpsPayload, true, gitOpsPayload.PullRequestComment.User);
+                    break;
+                case CommentAction.Terminate:
+                    await gitHubHelper.ExpireCla(gitOpsPayload.PullRequestComment.User, appOutput);
+                    appOutput.Comment = await gitHubHelper.GenerateCommentAsync(primitive, gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
+                    await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
+                    break;
             }
 
             appOutput.Conclusion = Conclusion.Success;
@@ -76,16 +96,24 @@ namespace ContributorLicenseAgreement.Core.Handlers
             return pr.User.Login.Equals(gitOpsPayload.PullRequestComment.User);
         }
 
-        private bool ParseComment(string comment, string host)
+        private CommentAction ParseComment(string comment, string host)
         {
             var tokens = comment.Split(' ');
 
-            if (tokens.Length > 3 || tokens.Length < 2)
+            if (tokens.Length == 2 && tokens.First().StartsWith($"@{flavorSettings[host].Name}"))
             {
-                return false;
+                switch (tokens[1])
+                {
+                    case Constants.Agree:
+                        return CommentAction.Agree;
+                    case Constants.Terminate:
+                        return CommentAction.Terminate;
+                    default:
+                        return CommentAction.Failure;
+                }
             }
 
-            return tokens.First().StartsWith($"@{flavorSettings[host].Name}") && tokens[1].Equals("--agree");
+            return CommentAction.Failure;
         }
     }
 }
