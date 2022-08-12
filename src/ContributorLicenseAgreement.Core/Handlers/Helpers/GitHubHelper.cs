@@ -31,7 +31,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
         private readonly IGitHubClientAdapterFactory factory;
         private readonly AppState appState;
         private readonly IAadRequestClient aadRequestClient;
-        private readonly GitHubLinkRestClient gitHubLinkClient;
+        private readonly IGitHubLinkRestClient gitHubLinkClient;
         private readonly PlatformAppFlavorSettings flavorSettings;
         private readonly ILogger<CLA> logger;
 
@@ -39,7 +39,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             IGitHubClientAdapterFactory factory,
             AppState appState,
             IAadRequestClient aadRequestClient,
-            GitHubLinkRestClient gitHubLinkClient,
+            IGitHubLinkRestClient gitHubLinkClient,
             PlatformAppFlavorSettings flavorSettings,
             ILogger<CLA> logger)
         {
