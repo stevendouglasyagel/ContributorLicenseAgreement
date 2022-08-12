@@ -12,7 +12,7 @@ namespace ContributorLicenseAgreement.Core.GitHubLinkClient
     using System.Threading.Tasks;
     using ContributorLicenseAgreement.Core.GitHubLinkClient.Model;
 
-    public class GitHubLinkRestClient
+    public class GitHubLinkRestClient : IGitHubLinkRestClient
     {
         private readonly HttpClient httpClient;
         private readonly string apiVersion;
