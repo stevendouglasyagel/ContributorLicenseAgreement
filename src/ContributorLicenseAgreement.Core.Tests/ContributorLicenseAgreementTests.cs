@@ -52,8 +52,25 @@ namespace ContributorLicenseAgreement.Core.Tests
             Assert.True(appOutput.Comment != null);
         }
 
+        [Theory]
+        [InlineData("@gitops-ppe agree")]
+        [InlineData("@gitops-ppe dfjd")]
+        public async Task IssueCommentHandlerTest(string comment)
+        {
+            var appOutput = await Comment(comment);
+            Assert.True(appOutput.Conclusion == Conclusion.Success);
+            Assert.True(appOutput.Comment == null);
+        }
+
         [Fact]
-        public async Task IssueCommentHandlerTest()
+        public async Task IssueCommentHandlerTerminateTest()
+        {
+            var appOutput = await Comment("@gitops-ppe terminate");
+            Assert.True(appOutput.Conclusion == Conclusion.Success);
+            Assert.True(appOutput.Comment != null);
+        }
+
+        private async Task<AppOutput> Comment(string comment)
         {
             var gitOpsPayload = new GitOpsPayload
             {
@@ -67,16 +84,14 @@ namespace ContributorLicenseAgreement.Core.Tests
                 },
                 PullRequestComment = new PullRequestComment
                 {
-                    Body = "@gitops-ppe agree",
+                    Body = comment,
                     User = "user0"
                 }
             };
 
             var app = classFixture.ServiceProvider.GetRequiredService<CLA>();
 
-            var appOutput = await app.Run(gitOpsPayload);
-            Assert.True(appOutput.Conclusion == Conclusion.Success);
-            Assert.True(appOutput.Comment == null);
+            return await app.Run(gitOpsPayload);
         }
     }
 }

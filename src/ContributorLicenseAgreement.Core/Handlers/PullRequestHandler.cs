@@ -61,6 +61,11 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
+            if (gitOpsPayload.PlatformContext.ActionType == PlatformEventActions.Closed)
+            {
+                appOutput.States = await CleanUpChecks(gitOpsPayload);
+            }
+
             var primitive = primitivesData.First();
 
             if (NeedsLicense(primitive, gitOpsPayload.PullRequest))
@@ -130,6 +135,27 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 var user = await aadRequestClient.ResolveUserAsync(cla.MsftMail);
                 return user.WasResolved;
             }
+        }
+
+        private async Task<States> CleanUpChecks(GitOpsPayload payload)
+        {
+            var key = $"{Constants.Check}-{payload.PullRequest.User}";
+            var checks = await appState.ReadState<List<string>>(key);
+            if (checks == null)
+            {
+                return null;
+            }
+
+            return new States
+            {
+                StateCollection = new System.Collections.Generic.Dictionary<string, object>
+                {
+                    {
+                        key,
+                        checks.Where(s => !s.Equals(payload.PullRequest.Sha)).ToList()
+                    }
+                }
+            };
         }
 
         private async Task<List<string>> AddCheckToStatesAsync(GitOpsPayload payload)
