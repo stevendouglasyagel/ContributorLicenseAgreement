@@ -16,6 +16,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="CLA-Error-Company.mustache">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CLA-Error.mustache">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="CLA.mustache">
     <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>

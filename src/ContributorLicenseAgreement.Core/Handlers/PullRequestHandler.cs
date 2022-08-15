@@ -61,13 +61,18 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
+            if (gitOpsPayload.PlatformContext.ActionType == PlatformEventActions.Closed)
+            {
+                appOutput.States = await CleanUpChecks(gitOpsPayload);
+            }
+
             var primitive = primitivesData.First();
 
             if (NeedsLicense(primitive, gitOpsPayload.PullRequest))
             {
                 var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload);
 
-                appOutput.Comment = await gitHubHelper.GenerateCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sender);
+                appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sender);
 
                 await gitHubHelper.CreateCheckAsync(gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sha);
 
@@ -117,7 +122,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                     return false;
                 }
 
-                cla = gitHubHelper.CreateCla(true, gitHubUser, appOutput, msftMail: gitHubLink.Aad.UserPrincipalName);
+                cla = gitHubHelper.CreateCla(true, gitHubUser, appOutput, "Microsoft", msftMail: gitHubLink.Aad.UserPrincipalName);
             }
 
             if (!cla.Employee)
@@ -130,6 +135,27 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 var user = await aadRequestClient.ResolveUserAsync(cla.MsftMail);
                 return user.WasResolved;
             }
+        }
+
+        private async Task<States> CleanUpChecks(GitOpsPayload payload)
+        {
+            var key = $"{Constants.Check}-{payload.PullRequest.User}";
+            var checks = await appState.ReadState<List<string>>(key);
+            if (checks == null)
+            {
+                return null;
+            }
+
+            return new States
+            {
+                StateCollection = new System.Collections.Generic.Dictionary<string, object>
+                {
+                    {
+                        key,
+                        checks.Where(s => !s.Equals(payload.PullRequest.Sha)).ToList()
+                    }
+                }
+            };
         }
 
         private async Task<List<string>> AddCheckToStatesAsync(GitOpsPayload payload)

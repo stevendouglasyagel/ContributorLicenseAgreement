@@ -7,6 +7,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using ContributorLicenseAgreement.Core.Handlers.Helpers;
     using ContributorLicenseAgreement.Core.Handlers.Model;
@@ -65,16 +66,23 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
-            switch (ParseComment(gitOpsPayload.PullRequestComment.Body, gitOpsPayload.PlatformContext.Dns))
+            var (commentAction, company) = ParseComment(gitOpsPayload.PullRequestComment.Body, gitOpsPayload.PlatformContext.Dns, primitive);
+            switch (commentAction)
             {
                 case CommentAction.Agree:
-                    gitHubHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput);
+                    gitHubHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput, company);
                     await gitHubHelper.UpdateChecksAsync(gitOpsPayload, true, gitOpsPayload.PullRequestComment.User);
                     break;
                 case CommentAction.Terminate:
                     await gitHubHelper.ExpireCla(gitOpsPayload.PullRequestComment.User, appOutput);
-                    appOutput.Comment = await gitHubHelper.GenerateCommentAsync(primitive, gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
+                    appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
                     await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
+                    break;
+                case CommentAction.Failure:
+                    appOutput.Comment = gitHubHelper.GenerateFailureComment(gitOpsPayload.PullRequestComment.User);
+                    break;
+                case CommentAction.BlockedCompany:
+                    appOutput.Comment = gitHubHelper.GenerateFailureComment(gitOpsPayload.PullRequestComment.User, company);
                     break;
             }
 
@@ -96,24 +104,58 @@ namespace ContributorLicenseAgreement.Core.Handlers
             return pr.User.Login.Equals(gitOpsPayload.PullRequestComment.User);
         }
 
-        private CommentAction ParseComment(string comment, string host)
+        private (CommentAction, string) ParseComment(string comment, string host, ClaPrimitive primitive)
         {
-            var tokens = comment.Split(' ');
+            var pattern = @"[ ](?=(?:[^""]*""[^""]*"")*[^""]*$)";
+            var regex = new Regex(pattern);
+            var tokens = regex.Split(comment);
 
-            if (tokens.Length == 2 && tokens.First().StartsWith($"@{flavorSettings[host].Name}"))
+            CommentAction commentAction = CommentAction.Failure;
+
+            if (tokens.Length >= 2 && tokens.First().StartsWith($"@{flavorSettings[host].Name}"))
             {
                 switch (tokens[1])
                 {
                     case Constants.Agree:
-                        return CommentAction.Agree;
+                        commentAction = CommentAction.Agree;
+                        break;
                     case Constants.Terminate:
-                        return CommentAction.Terminate;
-                    default:
-                        return CommentAction.Failure;
+                        commentAction = CommentAction.Terminate;
+                        break;
+                }
+
+                if (tokens.Length == 3)
+                {
+                    try
+                    {
+                        var companyInfo = tokens[2].Split('=');
+                        if (companyInfo[0].Equals(Constants.Company))
+                        {
+                            var company = companyInfo[1].Replace("\"", string.Empty);
+                            commentAction = primitive.BlockedCompanies != null
+                                ? primitive.BlockedCompanies.Contains(company)
+                                    ? CommentAction.BlockedCompany
+                                    : commentAction
+                                : commentAction;
+                            return (commentAction, company);
+                        }
+                        else
+                        {
+                            commentAction = CommentAction.Failure;
+                        }
+                    }
+                    catch
+                    {
+                        commentAction = CommentAction.Failure;
+                    }
                 }
             }
+            else
+            {
+                commentAction = CommentAction.Noop;
+            }
 
-            return CommentAction.Failure;
+            return (commentAction, string.Empty);
         }
     }
 }

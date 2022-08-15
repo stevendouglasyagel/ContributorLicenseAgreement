@@ -9,6 +9,8 @@ namespace ContributorLicenseAgreement.Core.Handlers.Model
     {
         public string GitHubUser { get; set; }
 
+        public string Company { get; set; }
+
         public string MsftMail { get; set; }
 
         public bool Employee { get; set; }

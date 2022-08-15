@@ -5,6 +5,9 @@
 
 namespace ContributorLicenseAgreement.Core
 {
+    using System.Diagnostics.CodeAnalysis;
+
+    [ExcludeFromCodeCoverage]
     public class OspoGitHubLinkSettings
     {
         public string ApiUrl { get; set; }

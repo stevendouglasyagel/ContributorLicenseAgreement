@@ -82,7 +82,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                 long.Parse(gitOpsPayload.PlatformContext.RepositoryId), check);
         }
 
-        internal async Task<Comment> GenerateCommentAsync(ClaPrimitive primitive, GitOpsPayload payload, bool cla, string gitHubUser)
+        internal async Task<Comment> GenerateClaCommentAsync(ClaPrimitive primitive, GitOpsPayload payload, bool cla, string gitHubUser)
         {
             if (cla)
             {
@@ -100,7 +100,36 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                 Bot = flavorSettings[payload.PlatformContext.Dns].Name
             };
 
-            var name = $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA.mustache";
+            return GenerateComment(
+                $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA.mustache", mustacheParams);
+        }
+
+        internal Comment GenerateFailureComment(string gitHubUser, string company)
+        {
+            var mustacheParams = new
+            {
+                User = gitHubUser,
+                Company = company
+            };
+
+            return GenerateComment(
+                $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA-Error-Company.mustache", mustacheParams);
+        }
+
+        internal Comment GenerateFailureComment(string gitHubUser)
+        {
+            var mustacheParams = new
+            {
+                User = gitHubUser
+            };
+
+            return GenerateComment(
+                $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA-Error.mustache", mustacheParams);
+        }
+
+        internal Comment GenerateComment(string fileName, object mustacheParams)
+        {
+            var name = fileName;
             var tmp = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
             var renderer = new StubbleBuilder().Build();
             using var stream = new StreamReader(tmp);
@@ -116,7 +145,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             };
         }
 
-        internal SignedCla CreateCla(bool isEmployee, string gitHubUser, AppOutput appOutput, string msftMail = null)
+        internal SignedCla CreateCla(bool isEmployee, string gitHubUser, AppOutput appOutput, string company, string msftMail = null)
         {
             var cla = new ContributorLicenseAgreement.Core.Handlers.Model.SignedCla
             {
@@ -124,6 +153,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                 Signed = System.DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 Expires = null,
                 GitHubUser = gitHubUser,
+                Company = company,
                 MsftMail = msftMail
             };
 

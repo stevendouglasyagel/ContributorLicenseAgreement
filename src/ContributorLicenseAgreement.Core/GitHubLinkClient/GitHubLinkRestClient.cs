@@ -6,12 +6,14 @@
 namespace ContributorLicenseAgreement.Core.GitHubLinkClient
 {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Text;
     using System.Threading.Tasks;
     using ContributorLicenseAgreement.Core.GitHubLinkClient.Model;
 
+    [ExcludeFromCodeCoverage]
     public class GitHubLinkRestClient : IGitHubLinkRestClient
     {
         private readonly HttpClient httpClient;
