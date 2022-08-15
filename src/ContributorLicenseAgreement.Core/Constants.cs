@@ -14,5 +14,6 @@ namespace ContributorLicenseAgreement.Core
         internal const string CheckSummary = "This check verifies that the author has agreed to a CLA with Microsoft.";
         internal const string Agree = "agree";
         internal const string Terminate = "terminate";
+        internal const string Company = "company";
     }
 }

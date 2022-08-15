@@ -9,6 +9,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Model
     {
         Agree,
         Failure,
-        Terminate
+        Terminate,
+        NOOP
     }
 }

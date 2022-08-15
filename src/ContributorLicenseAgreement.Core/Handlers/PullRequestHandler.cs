@@ -122,7 +122,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                     return false;
                 }
 
-                cla = gitHubHelper.CreateCla(true, gitHubUser, appOutput, msftMail: gitHubLink.Aad.UserPrincipalName);
+                cla = gitHubHelper.CreateCla(true, gitHubUser, appOutput, "Microsoft", msftMail: gitHubLink.Aad.UserPrincipalName);
             }
 
             if (!cla.Employee)

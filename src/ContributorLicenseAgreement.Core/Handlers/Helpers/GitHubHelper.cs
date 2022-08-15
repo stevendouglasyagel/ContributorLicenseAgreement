@@ -116,7 +116,30 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             };
         }
 
-        internal SignedCla CreateCla(bool isEmployee, string gitHubUser, AppOutput appOutput, string msftMail = null)
+        internal Comment GenerateFailureComment(string gitHubUser)
+        {
+            var mustacheParams = new
+            {
+                User = gitHubUser
+            };
+
+            var name = $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA-Error.mustache";
+            var tmp = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
+            var renderer = new StubbleBuilder().Build();
+            using var stream = new StreamReader(tmp);
+            var mustache = stream.ReadToEnd();
+            var details = renderer.Render(
+                mustache,
+                mustacheParams);
+
+            return new Comment
+            {
+                MarkdownText = details,
+                CommentType = CommentType.RawComment
+            };
+        }
+
+        internal SignedCla CreateCla(bool isEmployee, string gitHubUser, AppOutput appOutput, string company, string msftMail = null)
         {
             var cla = new ContributorLicenseAgreement.Core.Handlers.Model.SignedCla
             {
@@ -124,6 +147,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                 Signed = System.DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 Expires = null,
                 GitHubUser = gitHubUser,
+                Company = company,
                 MsftMail = msftMail
             };
 
