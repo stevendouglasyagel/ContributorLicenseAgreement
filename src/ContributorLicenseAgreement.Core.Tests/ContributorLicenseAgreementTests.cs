@@ -54,12 +54,20 @@ namespace ContributorLicenseAgreement.Core.Tests
 
         [Theory]
         [InlineData("@gitops-ppe agree")]
-        [InlineData("@gitops-ppe dfjd")]
         public async Task IssueCommentHandlerTest(string comment)
         {
             var appOutput = await Comment(comment);
             Assert.True(appOutput.Conclusion == Conclusion.Success);
             Assert.True(appOutput.Comment == null);
+        }
+
+        [Theory]
+        [InlineData("@gitops-ppe dfjd")]
+        public async Task IssueCommentHandlerErrorTest(string comment)
+        {
+            var appOutput = await Comment(comment);
+            Assert.True(appOutput.Conclusion == Conclusion.Success);
+            Assert.True(appOutput.Comment != null);
         }
 
         [Fact]
