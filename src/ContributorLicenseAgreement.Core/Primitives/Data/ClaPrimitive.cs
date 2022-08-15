@@ -26,5 +26,7 @@ namespace ContributorLicenseAgreement.Core.Primitives.Data
         public List<string> SkipUsers { get; set; }
 
         public List<string> SkipOrgs { get; set; }
+
+        public List<string> BlockedCompanies { get; set; }
     }
 }

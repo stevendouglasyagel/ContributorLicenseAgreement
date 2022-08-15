@@ -66,7 +66,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
-            var (commentAction, company) = ParseComment(gitOpsPayload.PullRequestComment.Body, gitOpsPayload.PlatformContext.Dns);
+            var (commentAction, company) = ParseComment(gitOpsPayload.PullRequestComment.Body, gitOpsPayload.PlatformContext.Dns, primitive);
             switch (commentAction)
             {
                 case CommentAction.Agree:
@@ -75,11 +75,14 @@ namespace ContributorLicenseAgreement.Core.Handlers
                     break;
                 case CommentAction.Terminate:
                     await gitHubHelper.ExpireCla(gitOpsPayload.PullRequestComment.User, appOutput);
-                    appOutput.Comment = await gitHubHelper.GenerateCommentAsync(primitive, gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
+                    appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
                     await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
                     break;
                 case CommentAction.Failure:
                     appOutput.Comment = gitHubHelper.GenerateFailureComment(gitOpsPayload.PullRequestComment.User);
+                    break;
+                case CommentAction.BlockedCompany:
+                    appOutput.Comment = gitHubHelper.GenerateFailureComment(gitOpsPayload.PullRequestComment.User, company);
                     break;
             }
 
@@ -101,7 +104,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             return pr.User.Login.Equals(gitOpsPayload.PullRequestComment.User);
         }
 
-        private (CommentAction, string) ParseComment(string comment, string host)
+        private (CommentAction, string) ParseComment(string comment, string host, ClaPrimitive primitive)
         {
             var pattern = @"[ ](?=(?:[^""]*""[^""]*"")*[^""]*$)";
             var regex = new Regex(pattern);
@@ -129,6 +132,11 @@ namespace ContributorLicenseAgreement.Core.Handlers
                         if (companyInfo[0].Equals(Constants.Company))
                         {
                             var company = companyInfo[1].Replace("\"", string.Empty);
+                            commentAction = primitive.BlockedCompanies != null
+                                ? primitive.BlockedCompanies.Contains(company)
+                                    ? CommentAction.BlockedCompany
+                                    : commentAction
+                                : commentAction;
                             return (commentAction, company);
                         }
                         else
@@ -144,7 +152,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             }
             else
             {
-                commentAction = CommentAction.NOOP;
+                commentAction = CommentAction.Noop;
             }
 
             return (commentAction, string.Empty);

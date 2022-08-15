@@ -72,7 +72,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             {
                 var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload);
 
-                appOutput.Comment = await gitHubHelper.GenerateCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sender);
+                appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sender);
 
                 await gitHubHelper.CreateCheckAsync(gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sha);
 

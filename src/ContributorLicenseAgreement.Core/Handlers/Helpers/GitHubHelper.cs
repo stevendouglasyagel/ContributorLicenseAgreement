@@ -82,7 +82,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                 long.Parse(gitOpsPayload.PlatformContext.RepositoryId), check);
         }
 
-        internal async Task<Comment> GenerateCommentAsync(ClaPrimitive primitive, GitOpsPayload payload, bool cla, string gitHubUser)
+        internal async Task<Comment> GenerateClaCommentAsync(ClaPrimitive primitive, GitOpsPayload payload, bool cla, string gitHubUser)
         {
             if (cla)
             {
@@ -100,20 +100,20 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                 Bot = flavorSettings[payload.PlatformContext.Dns].Name
             };
 
-            var name = $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA.mustache";
-            var tmp = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
-            var renderer = new StubbleBuilder().Build();
-            using var stream = new StreamReader(tmp);
-            var mustache = stream.ReadToEnd();
-            var details = renderer.Render(
-                mustache,
-                mustacheParams);
+            return GenerateComment(
+                $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA.mustache", mustacheParams);
+        }
 
-            return new Comment
+        internal Comment GenerateFailureComment(string gitHubUser, string company)
+        {
+            var mustacheParams = new
             {
-                MarkdownText = details,
-                CommentType = CommentType.RawComment
+                User = gitHubUser,
+                Company = company
             };
+
+            return GenerateComment(
+                $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA-Error-Company.mustache", mustacheParams);
         }
 
         internal Comment GenerateFailureComment(string gitHubUser)
@@ -123,7 +123,13 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                 User = gitHubUser
             };
 
-            var name = $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA-Error.mustache";
+            return GenerateComment(
+                $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA-Error.mustache", mustacheParams);
+        }
+
+        internal Comment GenerateComment(string fileName, object mustacheParams)
+        {
+            var name = fileName;
             var tmp = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
             var renderer = new StubbleBuilder().Build();
             using var stream = new StreamReader(tmp);
