@@ -116,11 +116,12 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                 $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA-Error-Company.mustache", mustacheParams);
         }
 
-        internal Comment GenerateFailureComment(string gitHubUser)
+        internal Comment GenerateFailureComment(GitOpsPayload payload, string gitHubUser)
         {
             var mustacheParams = new
             {
-                User = gitHubUser
+                User = gitHubUser,
+                Bot = flavorSettings[payload.PlatformContext.Dns].Name
             };
 
             return GenerateComment(

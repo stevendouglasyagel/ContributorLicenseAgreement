@@ -79,7 +79,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                     await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
                     break;
                 case CommentAction.Failure:
-                    appOutput.Comment = gitHubHelper.GenerateFailureComment(gitOpsPayload.PullRequestComment.User);
+                    appOutput.Comment = gitHubHelper.GenerateFailureComment(gitOpsPayload, gitOpsPayload.PullRequestComment.User);
                     break;
                 case CommentAction.BlockedCompany:
                     appOutput.Comment = gitHubHelper.GenerateFailureComment(gitOpsPayload.PullRequestComment.User, company);
