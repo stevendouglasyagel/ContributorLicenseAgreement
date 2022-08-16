@@ -64,6 +64,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             if (gitOpsPayload.PlatformContext.ActionType == PlatformEventActions.Closed)
             {
                 appOutput.States = await CleanUpChecks(gitOpsPayload);
+                return appOutput;
             }
 
             var primitive = primitivesData.First();
