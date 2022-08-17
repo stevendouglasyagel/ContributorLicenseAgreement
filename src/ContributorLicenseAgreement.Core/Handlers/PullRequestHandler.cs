@@ -61,6 +61,11 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
+            if (gitOpsPayload.PlatformContext.ActionType == PlatformEventActions.Synchronize)
+            {
+                return appOutput;
+            }
+
             if (gitOpsPayload.PlatformContext.ActionType == PlatformEventActions.Closed)
             {
                 appOutput.States = await CleanUpChecks(gitOpsPayload);
