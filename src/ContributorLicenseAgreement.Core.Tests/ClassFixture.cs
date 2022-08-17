@@ -44,17 +44,17 @@ namespace ContributorLicenseAgreement.Core.Tests
                     f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "user1"))
                 .ReturnsAsync(new AppStateTableEntity<SignedCla> { State = null });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<string>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-externalUser0"))
-                .ReturnsAsync(new AppStateTableEntity<List<string>> { State = new List<string> { "sha" } });
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-externalUser0"))
+                .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = new List<(long, string)> { (1, "sha") } });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<string>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-user0"))
-                .ReturnsAsync(new AppStateTableEntity<List<string>> { State = new List<string> { "sha" } });
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-user0"))
+                .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = new List<(long, string)> { (1, "sha") } });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<string>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-formerUser0"))
-                .ReturnsAsync(new AppStateTableEntity<List<string>> { State = new List<string> { "sha" } });
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-formerUser0"))
+                .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = new List<(long, string)> { (1, "sha") } });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<string>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-user1"))
-                .ReturnsAsync(new AppStateTableEntity<List<string>> { State = null });
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-user1"))
+                .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = null });
             mockBlobStorage.Setup(f => f.DownloadBlob(It.IsAny<string>(), It.IsAny<Uri>()))
                 .ReturnsAsync(File.ReadAllText("Data/cla.yml"));
             mockBlobStorage.Setup(f => f.ListBlobs(It.IsAny<string>(), It.IsAny<string>()))
