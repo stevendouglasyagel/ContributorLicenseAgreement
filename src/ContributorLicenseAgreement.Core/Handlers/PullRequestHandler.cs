@@ -75,7 +75,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
                 appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sender);
 
-                await gitHubHelper.CreateCheckAsync(gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sha);
+                await gitHubHelper.CreateCheckAsync(gitOpsPayload, hasCla, long.Parse(gitOpsPayload.PullRequest.RepositoryId), gitOpsPayload.PullRequest.Sha);
 
                 appOutput.States ??= new States
                 {
@@ -87,7 +87,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             }
             else
             {
-                await gitHubHelper.CreateCheckAsync(gitOpsPayload, true, gitOpsPayload.PullRequest.Sha);
+                await gitHubHelper.CreateCheckAsync(gitOpsPayload, true, long.Parse(gitOpsPayload.PullRequest.RepositoryId), gitOpsPayload.PullRequest.Sha);
             }
 
             appOutput.Conclusion = Conclusion.Success;
@@ -159,15 +159,15 @@ namespace ContributorLicenseAgreement.Core.Handlers
             };
         }
 
-        private async Task<List<string>> AddCheckToStatesAsync(GitOpsPayload payload)
+        private async Task<List<(long, string)>> AddCheckToStatesAsync(GitOpsPayload payload)
         {
             var key = $"{Constants.Check}-{payload.PullRequest.User}";
 
-            var checks = await appState.ReadState<List<string>>(key);
+            var checks = await appState.ReadState<List<(long, string)>>(key);
 
-            checks = checks ?? new List<string>();
+            checks = checks ?? new List<(long, string)>();
 
-            checks.Add(payload.PullRequest.Sha);
+            checks.Add((long.Parse(payload.PullRequest.RepositoryId), payload.PullRequest.Sha));
 
             return checks;
         }
