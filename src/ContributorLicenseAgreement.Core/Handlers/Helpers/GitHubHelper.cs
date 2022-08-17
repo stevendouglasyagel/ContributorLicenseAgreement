@@ -53,15 +53,15 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
 
         internal async Task UpdateChecksAsync(GitOpsPayload gitOpsPayload, bool hasCla, string gitHubUser)
         {
-            var shas = await appState.ReadState<List<string>>($"{Constants.Check}-{gitHubUser}");
+            var shas = await appState.ReadState<List<(long, string)>>($"{Constants.Check}-{gitHubUser}");
 
-            foreach (var sha in shas)
+            foreach (var (repoId, sha) in shas)
             {
-                await CreateCheckAsync(gitOpsPayload, hasCla, sha);
+                await CreateCheckAsync(gitOpsPayload, hasCla, repoId, sha);
             }
         }
 
-        internal async Task<CheckRun> CreateCheckAsync(GitOpsPayload gitOpsPayload, bool hasCla, string sha)
+        internal async Task<CheckRun> CreateCheckAsync(GitOpsPayload gitOpsPayload, bool hasCla, long repoId, string sha)
         {
             var client = await factory.GetGitHubClientAdapterAsync(
                 gitOpsPayload.PlatformContext.InstallationId,
@@ -79,7 +79,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             }
 
             return await client.CreateCheckRunAsync(
-                long.Parse(gitOpsPayload.PlatformContext.RepositoryId), check);
+                repoId, check);
         }
 
         internal async Task<Comment> GenerateClaCommentAsync(ClaPrimitive primitive, GitOpsPayload payload, bool cla, string gitHubUser)
