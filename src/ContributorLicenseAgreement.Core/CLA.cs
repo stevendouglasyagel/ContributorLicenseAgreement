@@ -36,8 +36,7 @@ namespace ContributorLicenseAgreement.Core
                 Conclusion = Conclusion.Neutral
             };
 
-            // grab all the primitives, usually each repository will have 2, one repo level and another one org level
-            var primitives = (await primitiveCollection.Get(gitOpsPayload))
+            var primitives = (await primitiveCollection.GetOrgLevelFromConfigAsCodeRepos(gitOpsPayload))
                 .Where(p => p is ClaPrimitive)
                 .Cast<ClaPrimitive>();
 
