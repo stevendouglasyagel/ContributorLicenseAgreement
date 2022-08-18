@@ -13,3 +13,6 @@ configuration:
     bypassOrgs:
       - bloomberg
     autoSignMsftEmployee: true
+    signRepos:
+      - repoName: sss
+        companyName: test

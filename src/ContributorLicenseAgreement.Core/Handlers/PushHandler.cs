@@ -62,17 +62,31 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             foreach (var user in removals)
             {
+                await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, user);
                 states.StateCollection.Add(user, await gitHubHelper.ExpireCla(user));
             }
 
+            foreach (var user in additions)
+            {
+                await gitHubHelper.UpdateChecksAsync(gitOpsPayload, true, user);
+            }
+
+            appOutput.States = states;
             return appOutput;
         }
 
         private (List<string>, List<string>) GetDifferences(PullRequestFile file)
         {
-            var newUsers = file.ContentAfterChange.Split('\n').ToHashSet();
-            var oldUsers = file.ContentBeforeChange.Split('\n').ToHashSet();
+            var newUsers = file.ContentAfterChange != null
+                ? file.ContentAfterChange.Split('\n').ToHashSet()
+                : new HashSet<string>();
             var removals = new List<string>();
+            if (file.ContentBeforeChange == null)
+            {
+                return (removals, newUsers.ToList());
+            }
+
+            var oldUsers = file.ContentBeforeChange.Split('\n').ToHashSet();
 
             foreach (var user in oldUsers)
             {

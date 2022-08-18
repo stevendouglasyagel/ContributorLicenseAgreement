@@ -55,6 +55,11 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
         {
             var shas = await appState.ReadState<List<(long, string)>>($"{Constants.Check}-{gitHubUser}");
 
+            if (shas == null)
+            {
+                return;
+            }
+
             foreach (var (repoId, sha) in shas)
             {
                 await CreateCheckAsync(gitOpsPayload, hasCla, repoId, sha);
