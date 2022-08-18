@@ -16,7 +16,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Apps.Abstractions.AppStates;
     using GitOps.Apps.Abstractions.Models;
     using GitOps.Clients.Aad;
-    using GitOps.Clients.GitHub;
     using Microsoft.Extensions.Logging;
     using PullRequest = GitOps.Abstractions.PullRequest;
 
@@ -73,7 +72,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             if (NeedsLicense(primitive, gitOpsPayload.PullRequest))
             {
-                var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload);
+                var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload, primitive.AutoSignMsftEmployee);
 
                 appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sender);
 
@@ -105,13 +104,13 @@ namespace ContributorLicenseAgreement.Core.Handlers
                    && pullRequest.Files.Count >= primitive.MinimalChangeRequired.Files;
         }
 
-        private async Task<bool> HasSignedClaAsync(AppOutput appOutput, GitOpsPayload gitOpsPayload)
+        private async Task<bool> HasSignedClaAsync(AppOutput appOutput, GitOpsPayload gitOpsPayload, bool autoSignMsftEmployee)
         {
             var gitHubUser = gitOpsPayload.PullRequest.User;
 
             var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(gitHubUser);
 
-            if (cla == null)
+            if (cla == null && autoSignMsftEmployee)
             {
                 var gitHubLink = await gitHubLinkClient.GetLink(gitHubUser);
                 if (gitHubLink.GitHub == null)
