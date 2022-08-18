@@ -15,5 +15,6 @@ namespace ContributorLicenseAgreement.Core
         internal const string Agree = "agree";
         internal const string Terminate = "terminate";
         internal const string Company = "company";
+        internal const string FileName = "fileName.csv";
     }
 }

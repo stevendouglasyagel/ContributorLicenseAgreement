@@ -22,7 +22,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
     internal class PullRequestHandler : IAppEventHandler
     {
-        private readonly IGitHubClientAdapterFactory factory;
         private readonly AppState appState;
         private readonly IAadRequestClient aadRequestClient;
         private readonly IGitHubLinkRestClient gitHubLinkClient;
@@ -30,14 +29,12 @@ namespace ContributorLicenseAgreement.Core.Handlers
         private readonly ILogger<CLA> logger;
 
         public PullRequestHandler(
-            IGitHubClientAdapterFactory factory,
             AppState appState,
             IAadRequestClient aadRequestClient,
             IGitHubLinkRestClient gitHubLinkClient,
             GitHubHelper gitHubHelper,
             ILogger<CLA> logger)
         {
-            this.factory = factory;
             this.appState = appState;
             this.aadRequestClient = aadRequestClient;
             this.gitHubLinkClient = gitHubLinkClient;
@@ -102,8 +99,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
         private static bool NeedsLicense(ClaPrimitive primitive, PullRequest pullRequest)
         {
-            return !primitive.SkipUsers.Contains(pullRequest.Sender)
-                   && !primitive.SkipOrgs.Contains(pullRequest.OrganizationName)
+            return !primitive.BypassUsers.Contains(pullRequest.Sender)
+                   && !primitive.BypassOrgs.Contains(pullRequest.OrganizationName)
                    && pullRequest.Files.Sum(f => f.Changes) >= primitive.MinimalChangeRequired.CodeLines
                    && pullRequest.Files.Count >= primitive.MinimalChangeRequired.Files;
         }

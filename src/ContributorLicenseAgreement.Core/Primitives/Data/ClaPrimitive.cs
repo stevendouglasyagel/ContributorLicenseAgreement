@@ -23,10 +23,14 @@ namespace ContributorLicenseAgreement.Core.Primitives.Data
 
         public MinimalChangeRequired MinimalChangeRequired { get; set; }
 
-        public List<string> SkipUsers { get; set; }
+        public List<string> BypassUsers { get; set; }
 
-        public List<string> SkipOrgs { get; set; }
+        public List<string> BypassOrgs { get; set; }
 
-        public List<string> BlockedCompanies { get; set; }
+        public List<string> ProhibitedCompanies { get; set; }
+
+        public List<CompanyRepo> SignRepos { get; set; }
+
+        public bool AutoSignMsftEmployee { get; set; }
     }
 }
