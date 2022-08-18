@@ -8,7 +8,11 @@ configuration:
     minimalChangeRequired:
       files: 1
       codeLines: 1
-    skipUsers:
+    bypassUsers:
       - test
-    skipOrgs:
+    bypassOrgs:
       - bloomberg
+    autoSignMsftEmployee: true
+    signRepos:
+      - repoName: sss
+        companyName: test

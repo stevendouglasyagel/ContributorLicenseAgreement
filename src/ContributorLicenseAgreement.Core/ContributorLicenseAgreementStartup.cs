@@ -40,6 +40,7 @@
             serviceCollection.RegisterAad(configuration);
             serviceCollection.AddSingleton<PullRequestHandler>();
             serviceCollection.AddSingleton<IssueCommentHandler>();
+            serviceCollection.AddSingleton<PushHandler>();
             serviceCollection.AddSingleton<GitHubHelper>();
             serviceCollection.Configure<PlatformAppFlavorSettings>(
                 configuration.GetSection(nameof(PlatformAppFlavorSettings)));

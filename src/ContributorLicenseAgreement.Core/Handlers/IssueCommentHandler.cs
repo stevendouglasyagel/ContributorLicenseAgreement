@@ -74,7 +74,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
                     await gitHubHelper.UpdateChecksAsync(gitOpsPayload, true, gitOpsPayload.PullRequestComment.User);
                     break;
                 case CommentAction.Terminate:
-                    await gitHubHelper.ExpireCla(gitOpsPayload.PullRequestComment.User, appOutput);
+                    var cla = await gitHubHelper.ExpireCla(gitOpsPayload.PullRequestComment.User);
+                    appOutput.States = gitHubHelper.GenerateStates(gitOpsPayload.PullRequestComment.User, cla);
                     appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
                     await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
                     break;
@@ -132,8 +133,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
                         if (companyInfo[0].Equals(Constants.Company))
                         {
                             var company = companyInfo[1].Replace("\"", string.Empty);
-                            commentAction = primitive.BlockedCompanies != null
-                                ? primitive.BlockedCompanies.Contains(company)
+                            commentAction = primitive.ProhibitedCompanies != null
+                                ? primitive.ProhibitedCompanies.Contains(company)
                                     ? CommentAction.BlockedCompany
                                     : commentAction
                                 : commentAction;

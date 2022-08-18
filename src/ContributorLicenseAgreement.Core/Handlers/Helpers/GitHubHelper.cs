@@ -55,6 +55,11 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
         {
             var shas = await appState.ReadState<List<(long, string)>>($"{Constants.Check}-{gitHubUser}");
 
+            if (shas == null)
+            {
+                return;
+            }
+
             foreach (var (repoId, sha) in shas)
             {
                 await CreateCheckAsync(gitOpsPayload, hasCla, repoId, sha);
@@ -163,17 +168,37 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             return cla;
         }
 
-        internal async Task<SignedCla> ExpireCla(string gitHubUser, AppOutput appOutput)
+        internal States CreateClas(List<string> gitHubUsers, string company)
+        {
+            var dict = new System.Collections.Generic.Dictionary<string, object>();
+
+            foreach (var gitHubUser in gitHubUsers)
+            {
+                var cla = new ContributorLicenseAgreement.Core.Handlers.Model.SignedCla
+                {
+                    Signed = System.DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+                    Expires = null,
+                    GitHubUser = gitHubUser,
+                    Company = company
+                };
+                dict.Add(gitHubUser, cla);
+            }
+
+            return new States
+            {
+                StateCollection = dict
+            };
+        }
+
+        internal async Task<SignedCla> ExpireCla(string gitHubUser)
         {
             var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(gitHubUser);
             cla.Expires = System.DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
-            appOutput.States = GenerateStates(gitHubUser, cla);
-
             return cla;
         }
 
-        private States GenerateStates(string gitHubUser, ContributorLicenseAgreement.Core.Handlers.Model.SignedCla cla)
+        internal States GenerateStates(string gitHubUser, ContributorLicenseAgreement.Core.Handlers.Model.SignedCla cla)
         {
             {
                 return new States

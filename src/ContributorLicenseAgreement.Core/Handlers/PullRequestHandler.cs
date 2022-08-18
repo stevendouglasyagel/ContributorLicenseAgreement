@@ -16,13 +16,11 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Apps.Abstractions.AppStates;
     using GitOps.Apps.Abstractions.Models;
     using GitOps.Clients.Aad;
-    using GitOps.Clients.GitHub;
     using Microsoft.Extensions.Logging;
     using PullRequest = GitOps.Abstractions.PullRequest;
 
     internal class PullRequestHandler : IAppEventHandler
     {
-        private readonly IGitHubClientAdapterFactory factory;
         private readonly AppState appState;
         private readonly IAadRequestClient aadRequestClient;
         private readonly IGitHubLinkRestClient gitHubLinkClient;
@@ -30,14 +28,12 @@ namespace ContributorLicenseAgreement.Core.Handlers
         private readonly ILogger<CLA> logger;
 
         public PullRequestHandler(
-            IGitHubClientAdapterFactory factory,
             AppState appState,
             IAadRequestClient aadRequestClient,
             IGitHubLinkRestClient gitHubLinkClient,
             GitHubHelper gitHubHelper,
             ILogger<CLA> logger)
         {
-            this.factory = factory;
             this.appState = appState;
             this.aadRequestClient = aadRequestClient;
             this.gitHubLinkClient = gitHubLinkClient;
@@ -76,7 +72,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             if (NeedsLicense(primitive, gitOpsPayload.PullRequest))
             {
-                var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload);
+                var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload, primitive.AutoSignMsftEmployee);
 
                 appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sender);
 
@@ -102,13 +98,13 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
         private static bool NeedsLicense(ClaPrimitive primitive, PullRequest pullRequest)
         {
-            return !primitive.SkipUsers.Contains(pullRequest.Sender)
-                   && !primitive.SkipOrgs.Contains(pullRequest.OrganizationName)
+            return !primitive.BypassUsers.Contains(pullRequest.Sender)
+                   && !primitive.BypassOrgs.Contains(pullRequest.OrganizationName)
                    && pullRequest.Files.Sum(f => f.Changes) >= primitive.MinimalChangeRequired.CodeLines
                    && pullRequest.Files.Count >= primitive.MinimalChangeRequired.Files;
         }
 
-        private async Task<bool> HasSignedClaAsync(AppOutput appOutput, GitOpsPayload gitOpsPayload)
+        private async Task<bool> HasSignedClaAsync(AppOutput appOutput, GitOpsPayload gitOpsPayload, bool autoSignMsftEmployee)
         {
             var gitHubUser = gitOpsPayload.PullRequest.User;
 
@@ -116,6 +112,11 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             if (cla == null)
             {
+                if (!autoSignMsftEmployee)
+                {
+                    return false;
+                }
+
                 var gitHubLink = await gitHubLinkClient.GetLink(gitHubUser);
                 if (gitHubLink.GitHub == null)
                 {
