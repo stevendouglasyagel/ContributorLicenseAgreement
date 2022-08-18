@@ -110,8 +110,13 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(gitHubUser);
 
-            if (cla == null && autoSignMsftEmployee)
+            if (cla == null)
             {
+                if (!autoSignMsftEmployee)
+                {
+                    return false;
+                }
+
                 var gitHubLink = await gitHubLinkClient.GetLink(gitHubUser);
                 if (gitHubLink.GitHub == null)
                 {
