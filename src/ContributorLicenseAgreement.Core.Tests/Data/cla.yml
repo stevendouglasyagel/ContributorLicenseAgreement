@@ -14,5 +14,5 @@ configuration:
       - bloomberg
     autoSignMsftEmployee: true
     signRepos:
-      - repoName: sss
+      - repoName: cla-test
         companyName: test

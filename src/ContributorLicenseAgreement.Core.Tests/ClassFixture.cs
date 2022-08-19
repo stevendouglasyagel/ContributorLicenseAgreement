@@ -41,6 +41,9 @@ namespace ContributorLicenseAgreement.Core.Tests
                     f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "externalUser0"))
                 .ReturnsAsync(new AppStateTableEntity<SignedCla> { State = new SignedCla { Employee = false, Expires = null, Signed = 1, GitHubUser = "externalUser0", MsftMail = null } });
             mockBlobStorage.Setup(f =>
+                    f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "test-ex-employee"))
+                .ReturnsAsync(new AppStateTableEntity<SignedCla> { State = new SignedCla { Employee = false, Expires = null, Signed = 1, GitHubUser = "test-ex-employee", MsftMail = null, Company = "test" } });
+            mockBlobStorage.Setup(f =>
                     f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "user1"))
                 .ReturnsAsync(new AppStateTableEntity<SignedCla> { State = null });
             mockBlobStorage.Setup(f =>
@@ -54,6 +57,12 @@ namespace ContributorLicenseAgreement.Core.Tests
                 .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = new List<(long, string)> { (1, "sha") } });
             mockBlobStorage.Setup(f =>
                     f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-user1"))
+                .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = null });
+            mockBlobStorage.Setup(f =>
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-test-employee"))
+                .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = null });
+            mockBlobStorage.Setup(f =>
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-test-ex-employee"))
                 .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = null });
             mockBlobStorage.Setup(f => f.DownloadBlob(It.IsAny<string>(), It.IsAny<Uri>()))
                 .ReturnsAsync(File.ReadAllText("Data/cla.yml"));
