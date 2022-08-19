@@ -53,6 +53,11 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
+            if (!gitOpsPayload.PlatformContext.DefaultBranchName.Equals(gitOpsPayload.Push.BranchName))
+            {
+                return appOutput;
+            }
+
             var file = gitOpsPayload.Push.Files.First(f => f.FileName.Equals(Constants.FileName));
 
             var (removals, additions) = GetDifferences(file);
@@ -68,17 +73,18 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, user);
                 states.StateCollection.Add(user, await gitHubHelper.ExpireCla(user));
                 logger.LogInformation(
-                    "CLA terminated on behalf of GitHub-user: {User} for company: {Company}", gitOpsPayload.PullRequestComment.User, companyName);
+                    "CLA terminated on behalf of GitHub-user: {User} for company: {Company}", gitOpsPayload.Push.Sender, companyName);
             }
 
             foreach (var user in additions)
             {
                 await gitHubHelper.UpdateChecksAsync(gitOpsPayload, true, user);
                 logger.LogInformation(
-                    "CLA signed on behalf of GitHub-user: {User} for company: {Company}", gitOpsPayload.PullRequestComment.User, companyName);
+                    "CLA signed on behalf of GitHub-user: {User} for company: {Company}", gitOpsPayload.Push.Sender, companyName);
             }
 
             appOutput.States = states;
+            appOutput.Conclusion = Conclusion.Success;
             return appOutput;
         }
 
