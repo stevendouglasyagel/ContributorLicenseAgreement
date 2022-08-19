@@ -5,6 +5,7 @@
 
 namespace ContributorLicenseAgreement.Core.Tests
 {
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Threading.Tasks;
@@ -76,6 +77,46 @@ namespace ContributorLicenseAgreement.Core.Tests
             var appOutput = await Comment("@gitops-ppe terminate");
             Assert.True(appOutput.Conclusion == Conclusion.Success);
             Assert.True(appOutput.Comment != null);
+        }
+
+        [Fact]
+        public async Task PushHandlerTest()
+        {
+            var gitOpsPayload = new GitOpsPayload
+            {
+                PlatformContext = new PlatformContext
+                {
+                    Dns = "microsoft.githubenterprise.com",
+                    RepositoryId = "1223",
+                    RepositoryName = "cla-test",
+                    ActionType = PlatformEventActions.Push,
+                    EventType = PlatformEventActions.Push,
+                    DefaultBranchName = "main"
+                },
+                Push = new Push
+                {
+                    BranchName = "main",
+                    RepositoryDefaultBranch = "main",
+                    RepositoryName = "cla-test",
+                    Files = new List<PullRequestFile>
+                    {
+                        new PullRequestFile
+                        {
+                            FileName = Constants.FileName,
+                            ContentAfterChange = "test-employee",
+                            ContentBeforeChange = "test-ex-employee"
+                        }
+                    }
+                }
+            };
+
+            var app = classFixture.ServiceProvider.GetRequiredService<CLA>();
+            var appOutput = await app.Run(gitOpsPayload);
+
+            Assert.Equal(Conclusion.Success, appOutput.Conclusion);
+            Assert.NotNull(appOutput.States);
+            Assert.Contains("test-employee", appOutput.States.StateCollection.Keys);
+            Assert.Contains("test-ex-employee", appOutput.States.StateCollection.Keys);
         }
 
         private async Task<AppOutput> Comment(string comment)

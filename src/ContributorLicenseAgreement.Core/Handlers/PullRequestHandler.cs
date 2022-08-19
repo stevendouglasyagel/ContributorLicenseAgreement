@@ -59,12 +59,14 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             if (gitOpsPayload.PlatformContext.ActionType == PlatformEventActions.Synchronize)
             {
+                logger.LogInformation("Not acting on synchronize action");
                 return appOutput;
             }
 
             if (gitOpsPayload.PlatformContext.ActionType == PlatformEventActions.Closed)
             {
                 appOutput.States = await CleanUpChecks(gitOpsPayload);
+                logger.LogInformation("Checks cleaned up");
                 return appOutput;
             }
 
@@ -72,6 +74,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             if (NeedsLicense(primitive, gitOpsPayload.PullRequest))
             {
+                logger.LogInformation("License needed for {Sender}", gitOpsPayload.PullRequest.User);
+
                 var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload, primitive.AutoSignMsftEmployee);
 
                 appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sender);
@@ -88,6 +92,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             }
             else
             {
+                logger.LogInformation("No license needed for {Sender}", gitOpsPayload.PullRequest.User);
                 await gitHubHelper.CreateCheckAsync(gitOpsPayload, true, long.Parse(gitOpsPayload.PullRequest.RepositoryId), gitOpsPayload.PullRequest.Sha);
             }
 

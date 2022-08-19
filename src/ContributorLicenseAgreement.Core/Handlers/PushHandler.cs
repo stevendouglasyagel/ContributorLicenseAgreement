@@ -53,25 +53,38 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
+            if (!gitOpsPayload.Push.RepositoryDefaultBranch.Equals(gitOpsPayload.Push.BranchName))
+            {
+                return appOutput;
+            }
+
             var file = gitOpsPayload.Push.Files.First(f => f.FileName.Equals(Constants.FileName));
 
             var (removals, additions) = GetDifferences(file);
 
+            var companyName =
+                primitive.SignRepos.First(r => r.RepoName.Equals(gitOpsPayload.Push.RepositoryName)).CompanyName;
+
             var states = gitHubHelper.CreateClas(
-                additions, primitive.SignRepos.First(r => r.RepoName.Equals(gitOpsPayload.Push.RepositoryName)).CompanyName);
+                additions, companyName);
 
             foreach (var user in removals)
             {
                 await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, user);
-                states.StateCollection.Add(user, await gitHubHelper.ExpireCla(user));
+                states.StateCollection.Add(user, await gitHubHelper.ExpireCla(user, false));
+                logger.LogInformation(
+                    "CLA terminated on behalf of GitHub-user: {User} for company: {Company}", gitOpsPayload.Push.Sender, companyName);
             }
 
             foreach (var user in additions)
             {
                 await gitHubHelper.UpdateChecksAsync(gitOpsPayload, true, user);
+                logger.LogInformation(
+                    "CLA signed on behalf of GitHub-user: {User} for company: {Company}", gitOpsPayload.Push.Sender, companyName);
             }
 
             appOutput.States = states;
+            appOutput.Conclusion = Conclusion.Success;
             return appOutput;
         }
 

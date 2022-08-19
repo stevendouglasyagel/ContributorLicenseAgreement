@@ -1,4 +1,4 @@
-﻿/*---------------------------------------------------------------------------------------------
+/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the Microsoft License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
@@ -160,7 +160,8 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                 Expires = null,
                 GitHubUser = gitHubUser,
                 Company = company,
-                MsftMail = msftMail
+                MsftMail = msftMail,
+                CanSelfTerminate = true
             };
 
             appOutput.States = GenerateStates(gitHubUser, cla);
@@ -179,7 +180,8 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                     Signed = System.DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                     Expires = null,
                     GitHubUser = gitHubUser,
-                    Company = company
+                    Company = company,
+                    CanSelfTerminate = false
                 };
                 dict.Add(gitHubUser, cla);
             }
@@ -190,9 +192,15 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             };
         }
 
-        internal async Task<SignedCla> ExpireCla(string gitHubUser)
+        internal async Task<SignedCla> ExpireCla(string gitHubUser, bool user = true)
         {
             var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(gitHubUser);
+            if (!cla.CanSelfTerminate && user)
+            {
+                logger.LogError("This cla cannot be terminated by user {User}", gitHubUser);
+                return null;
+            }
+
             cla.Expires = System.DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
             return cla;
