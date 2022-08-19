@@ -63,6 +63,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             if (!await CheckSenderAsync(gitOpsPayload))
             {
+                logger.LogInformation("Sender not pr author. Ignoring...");
                 return appOutput;
             }
 
@@ -72,18 +73,22 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 case CommentAction.Agree:
                     gitHubHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput, company);
                     await gitHubHelper.UpdateChecksAsync(gitOpsPayload, true, gitOpsPayload.PullRequestComment.User);
+                    logger.LogInformation("CLA signed for GitHub-user: {User}", gitOpsPayload.PullRequestComment.User);
                     break;
                 case CommentAction.Terminate:
                     var cla = await gitHubHelper.ExpireCla(gitOpsPayload.PullRequestComment.User);
                     appOutput.States = gitHubHelper.GenerateStates(gitOpsPayload.PullRequestComment.User, cla);
                     appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
                     await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
+                    logger.LogInformation("CLA terminated for GitHub-user: {User}", gitOpsPayload.PullRequestComment.User);
                     break;
                 case CommentAction.Failure:
                     appOutput.Comment = gitHubHelper.GenerateFailureComment(gitOpsPayload, gitOpsPayload.PullRequestComment.User);
+                    logger.LogInformation("Failed CLA sign attempt: {User}", gitOpsPayload.PullRequestComment.User);
                     break;
                 case CommentAction.BlockedCompany:
                     appOutput.Comment = gitHubHelper.GenerateFailureComment(gitOpsPayload.PullRequestComment.User, company);
+                    logger.LogInformation("Failed CLA sign attempt on behalf of company: {User}", gitOpsPayload.PullRequestComment.User);
                     break;
             }
 

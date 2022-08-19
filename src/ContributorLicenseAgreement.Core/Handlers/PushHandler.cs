@@ -57,18 +57,25 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             var (removals, additions) = GetDifferences(file);
 
+            var companyName =
+                primitive.SignRepos.First(r => r.RepoName.Equals(gitOpsPayload.Push.RepositoryName)).CompanyName;
+
             var states = gitHubHelper.CreateClas(
-                additions, primitive.SignRepos.First(r => r.RepoName.Equals(gitOpsPayload.Push.RepositoryName)).CompanyName);
+                additions, companyName);
 
             foreach (var user in removals)
             {
                 await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, user);
                 states.StateCollection.Add(user, await gitHubHelper.ExpireCla(user));
+                logger.LogInformation(
+                    "CLA terminated on behalf of GitHub-user: {User} for company: {Company}", gitOpsPayload.PullRequestComment.User, companyName);
             }
 
             foreach (var user in additions)
             {
                 await gitHubHelper.UpdateChecksAsync(gitOpsPayload, true, user);
+                logger.LogInformation(
+                    "CLA signed on behalf of GitHub-user: {User} for company: {Company}", gitOpsPayload.PullRequestComment.User, companyName);
             }
 
             appOutput.States = states;
