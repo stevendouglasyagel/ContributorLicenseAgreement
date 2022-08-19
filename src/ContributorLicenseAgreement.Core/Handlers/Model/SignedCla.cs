@@ -18,5 +18,14 @@ namespace ContributorLicenseAgreement.Core.Handlers.Model
         public long Signed { get; set; }
 
         public long? Expires { get; set; }
+
+        public bool CanSelfTerminate { get; set; }
+
+        public override string ToString()
+        {
+            var user = $"User: {GitHubUser}";
+            user = Company == null ? user : user + $", Company: {Company}";
+            return Employee ? $"{user}, eMail: {MsftMail}" : user;
+        }
     }
 }

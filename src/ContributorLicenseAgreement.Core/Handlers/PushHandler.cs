@@ -53,7 +53,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
-            if (!gitOpsPayload.PlatformContext.DefaultBranchName.Equals(gitOpsPayload.Push.BranchName))
+            if (!gitOpsPayload.Push.RepositoryDefaultBranch.Equals(gitOpsPayload.Push.BranchName))
             {
                 return appOutput;
             }
@@ -71,7 +71,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             foreach (var user in removals)
             {
                 await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, user);
-                states.StateCollection.Add(user, await gitHubHelper.ExpireCla(user));
+                states.StateCollection.Add(user, await gitHubHelper.ExpireCla(user, false));
                 logger.LogInformation(
                     "CLA terminated on behalf of GitHub-user: {User} for company: {Company}", gitOpsPayload.Push.Sender, companyName);
             }
