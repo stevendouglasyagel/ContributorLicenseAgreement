@@ -96,6 +96,7 @@ namespace ContributorLicenseAgreement.Core.Tests
                 Push = new Push
                 {
                     BranchName = "main",
+                    RepositoryDefaultBranch = "main",
                     RepositoryName = "cla-test",
                     Files = new List<PullRequestFile>
                     {

@@ -33,7 +33,7 @@ namespace ContributorLicenseAgreement.Core.Tests
             var mockBlobStorage = new Mock<IBlobStorage>();
             mockBlobStorage.Setup(f =>
                     f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "user0"))
-                .ReturnsAsync(new AppStateTableEntity<SignedCla> { State = new SignedCla { Employee = true, Expires = null, Signed = 1, GitHubUser = "user0", MsftMail = "user0@microsoft.com" } });
+                .ReturnsAsync(new AppStateTableEntity<SignedCla> { State = new SignedCla { Employee = true, Expires = null, Signed = 1, GitHubUser = "user0", MsftMail = "user0@microsoft.com", CanSelfTerminate = true } });
             mockBlobStorage.Setup(f =>
                     f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "formerUser0"))
                 .ReturnsAsync(new AppStateTableEntity<SignedCla> { State = new SignedCla { Employee = true, Expires = null, Signed = 1, GitHubUser = "formerUser0", MsftMail = "formerUser0@microsoft.com" } });
