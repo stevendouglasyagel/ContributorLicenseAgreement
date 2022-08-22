@@ -73,14 +73,14 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, user);
                 states.StateCollection.Add(user, await gitHubHelper.ExpireCla(user, false));
                 logger.LogInformation(
-                    "CLA terminated on behalf of GitHub-user: {User} for company: {Company}", gitOpsPayload.Push.Sender, companyName);
+                    "CLA terminated on behalf of GitHub-user: {User} for {Company} by {Sender}", user, companyName, gitOpsPayload.Push.Sender);
             }
 
             foreach (var user in additions)
             {
                 await gitHubHelper.UpdateChecksAsync(gitOpsPayload, true, user);
                 logger.LogInformation(
-                    "CLA signed on behalf of GitHub-user: {User} for company: {Company}", gitOpsPayload.Push.Sender, companyName);
+                    "CLA signed on behalf of GitHub-user: {User} for {Company} by {Sender}", user, companyName, gitOpsPayload.Push.Sender);
             }
 
             appOutput.States = states;
@@ -113,7 +113,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 }
             }
 
-            return (removals, newUsers.ToList());
+            return (removals, newUsers.Where(s => !s.Equals(string.Empty)).ToList());
         }
     }
 }
