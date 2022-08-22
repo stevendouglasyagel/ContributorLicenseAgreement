@@ -24,7 +24,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Model
         public override string ToString()
         {
             var user = $"User: {GitHubUser}";
-            user = Company == null ? user : user + $", Company: {Company}";
+            user = Company == null || Company.Equals(string.Empty) ? user : user + $", Company: {Company}";
             return Employee ? $"{user}, eMail: {MsftMail}" : user;
         }
     }

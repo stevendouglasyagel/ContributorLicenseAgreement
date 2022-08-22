@@ -128,13 +128,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
                     return false;
                 }
 
-                var aadUser = await aadRequestClient.ResolveUserAsync(gitHubLink.Aad.UserPrincipalName);
-                if (!aadUser.WasResolved)
-                {
-                    return false;
-                }
-
                 cla = gitHubHelper.CreateCla(true, gitHubUser, appOutput, "Microsoft", msftMail: gitHubLink.Aad.UserPrincipalName);
+                logger.LogInformation("CLA signed for GitHub-user: {Cla}", cla);
             }
 
             if (!cla.Employee)
