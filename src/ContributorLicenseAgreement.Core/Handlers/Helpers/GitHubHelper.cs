@@ -11,13 +11,11 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
     using System.Net.Http;
     using System.Reflection;
     using System.Threading.Tasks;
-    using ContributorLicenseAgreement.Core.GitHubLinkClient;
     using ContributorLicenseAgreement.Core.Handlers.Model;
     using ContributorLicenseAgreement.Core.Primitives.Data;
     using GitOps.Abstractions;
     using GitOps.Apps.Abstractions.AppStates;
     using GitOps.Apps.Abstractions.Models;
-    using GitOps.Clients.Aad;
     using GitOps.Clients.GitHub;
     using GitOps.Clients.GitHub.Configuration;
     using Microsoft.Extensions.Logging;
@@ -30,23 +28,17 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
     {
         private readonly IGitHubClientAdapterFactory factory;
         private readonly AppState appState;
-        private readonly IAadRequestClient aadRequestClient;
-        private readonly IGitHubLinkRestClient gitHubLinkClient;
         private readonly PlatformAppFlavorSettings flavorSettings;
         private readonly ILogger<CLA> logger;
 
         public GitHubHelper(
             IGitHubClientAdapterFactory factory,
             AppState appState,
-            IAadRequestClient aadRequestClient,
-            IGitHubLinkRestClient gitHubLinkClient,
             PlatformAppFlavorSettings flavorSettings,
             ILogger<CLA> logger)
         {
             this.factory = factory;
             this.appState = appState;
-            this.aadRequestClient = aadRequestClient;
-            this.gitHubLinkClient = gitHubLinkClient;
             this.flavorSettings = flavorSettings;
             this.logger = logger;
         }

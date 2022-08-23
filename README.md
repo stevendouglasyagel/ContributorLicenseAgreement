@@ -1,14 +1,39 @@
-# Project
+# Contributor License Agreement - CLA
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+## What is CLA?
 
-As the maintainer of this project, please make a few updates:
+CLA is a tool that allows outside contributors to sign a contribution license agreement (cla).
+With this agreement signed, external contributors can contribute code to Microsoft open-source repos.
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+## Usage
+
+To use CLA, you need to define a [cla.yml](src/ContributorLicenseAgreement.Core.Tests/Data/cla.yml) file on org level.
+This YAML file defines how the CLA should act, what the agreement should be, and which accounts are exempt from signing.
+Furthermore, the *Microsoft GitHub Policy Service* needs to be installed for your organization.
+
+## Commands
+
+Whenever a pull request is created, CLA will check whether or not to user who opened the pr has 
+already signed an agreement. If not, it will output a comment prompting the user to accept the agreement.
+
+### Accepting
+
+To accept the agreement, the user can issue one of the following two commands.
+
+```
+@bot aggree
+@bot aggree company="your company"
+```
+
+### Terminating
+
+A user can choose to terminate the signed agreement by issuing the following command under a pull
+request that was opened by the same user.
+
+```
+@bot terminate
+```
+
 
 ## Contributing
 
