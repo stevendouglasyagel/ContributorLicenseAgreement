@@ -50,11 +50,13 @@ namespace ContributorLicenseAgreement.Core.Handlers
             if (!primitive.SignRepos.Any(r => r.RepoName.Equals(gitOpsPayload.Push.RepositoryName))
                 || !gitOpsPayload.Push.Files.Any(f => f.FileName.Equals(Constants.FileName)))
             {
+                logger.LogInformation("Not the right file/repo");
                 return appOutput;
             }
 
             if (!gitOpsPayload.Push.RepositoryDefaultBranch.Equals(gitOpsPayload.Push.BranchName))
             {
+                logger.LogInformation("Change was not pushed to default branch");
                 return appOutput;
             }
 
