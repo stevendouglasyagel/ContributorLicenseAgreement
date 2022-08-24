@@ -42,6 +42,7 @@
             serviceCollection.AddSingleton<IssueCommentHandler>();
             serviceCollection.AddSingleton<PushHandler>();
             serviceCollection.AddSingleton<GitHubHelper>();
+            serviceCollection.AddSingleton<LegacyClaCheckHandler>();
             serviceCollection.Configure<PlatformAppFlavorSettings>(
                 configuration.GetSection(nameof(PlatformAppFlavorSettings)));
         }
