@@ -12,20 +12,25 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using ContributorLicenseAgreement.Core.Handlers.Helpers;
     using ContributorLicenseAgreement.Core.Primitives.Data;
     using GitOps.Abstractions;
+    using GitOps.Abstractions.Extensions;
     using GitOps.Apps.Abstractions.AppEventHandler;
     using GitOps.Apps.Abstractions.Models;
+    using GitOps.Clients.GitHub;
     using Microsoft.Extensions.Logging;
 
     public class PushHandler : IAppEventHandler
     {
         private readonly GitHubHelper gitHubHelper;
+        private readonly IGitHubClientAdapterFactory factory;
         private readonly ILogger<CLA> logger;
 
         public PushHandler(
             GitHubHelper gitHubHelper,
+            IGitHubClientAdapterFactory factory,
             ILogger<CLA> logger)
         {
             this.gitHubHelper = gitHubHelper;
+            this.factory = factory;
             this.logger = logger;
         }
 
@@ -62,6 +67,12 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             var file = gitOpsPayload.Push.Files.First(f => f.FileName.Equals(Constants.FileName));
 
+            if (file.IsLazyLoaded)
+            {
+                await file.PopulateFileContent(await factory.GetGitHubClientAdapterAsync(
+                    gitOpsPayload.PlatformContext.OrganizationName, gitOpsPayload.PlatformContext.Dns));
+            }
+
             var (removals, additions) = GetDifferences(file);
 
             var companyName =
@@ -93,7 +104,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
         private (List<string>, List<string>) GetDifferences(PullRequestFile file)
         {
             var newUsers = file.ContentAfterChange != null
-                ? file.ContentAfterChange.Split('\n').ToHashSet()
+                ? file.ContentAfterChange.Split('\n').Where(s => !s.Equals(string.Empty)).ToHashSet()
                 : new HashSet<string>();
             var removals = new List<string>();
             if (file.ContentBeforeChange == null)
@@ -101,7 +112,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return (removals, newUsers.ToList());
             }
 
-            var oldUsers = file.ContentBeforeChange.Split('\n').ToHashSet();
+            var oldUsers = file.ContentBeforeChange.Split('\n').Where(s => !s.Equals(string.Empty)).ToHashSet();
 
             foreach (var user in oldUsers)
             {
@@ -115,7 +126,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 }
             }
 
-            return (removals, newUsers.Where(s => !s.Equals(string.Empty)).ToList());
+            return (removals, newUsers.ToList());
         }
     }
 }
