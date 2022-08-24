@@ -57,12 +57,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
-            if (gitOpsPayload.PlatformContext.ActionType == PlatformEventActions.Synchronize)
-            {
-                logger.LogInformation("Not acting on synchronize action");
-                return appOutput;
-            }
-
             if (gitOpsPayload.PlatformContext.ActionType == PlatformEventActions.Closed)
             {
                 appOutput.States = await CleanUpChecks(gitOpsPayload);
