@@ -88,7 +88,7 @@ namespace ContributorLicenseAgreement.Core.Tests
                 {
                     Dns = "microsoft.githubenterprise.com",
                     RepositoryId = "1223",
-                    RepositoryName = "cla-test",
+                    RepositoryName = "test",
                     ActionType = PlatformEventActions.Push,
                     EventType = PlatformEventActions.Push,
                     DefaultBranchName = "main"
