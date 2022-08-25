@@ -36,7 +36,7 @@ namespace ContributorLicenseAgreement.Core
                 Conclusion = Conclusion.Neutral
             };
 
-            var primitives = (await primitiveCollection.GetOrgLevelFromConfigAsCodeRepos(gitOpsPayload))
+            var primitives = (await primitiveCollection.GetOrgPolicies(gitOpsPayload))
                 .Where(p => p is ClaPrimitive)
                 .Cast<ClaPrimitive>();
 
