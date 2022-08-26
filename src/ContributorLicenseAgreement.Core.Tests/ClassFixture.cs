@@ -8,6 +8,7 @@ namespace ContributorLicenseAgreement.Core.Tests
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Net.Http;
     using ContributorLicenseAgreement.Core.GitHubLinkClient;
     using ContributorLicenseAgreement.Core.GitHubLinkClient.Model;
     using ContributorLicenseAgreement.Core.Handlers;
@@ -101,6 +102,8 @@ namespace ContributorLicenseAgreement.Core.Tests
                 null,
                 null);
 
+            var mockIHttpClientFactory = new Mock<IHttpClientFactory>();
+
             var mockClient = new Mock<IGitHubClientAdapter>();
             mockClient.Setup(f =>
                 f.UpdateCheckRunAsync(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<CheckRunUpdate>()));
@@ -193,6 +196,14 @@ namespace ContributorLicenseAgreement.Core.Tests
                 }
             };
 
+            var legacyClaSettings = new LegacyClaSettings
+            {
+                AppId = 1,
+                AppName = "test",
+                Enabled = false,
+                PrivateKey = string.Empty
+            };
+
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton<PrimitiveCollection>();
             serviceCollection.RegisterAppEventHandlerOrchestrator();
@@ -202,6 +213,8 @@ namespace ContributorLicenseAgreement.Core.Tests
             serviceCollection.AddSingleton<IGitHubLinkRestClient>(mockGitHubLinkClient.Object);
             serviceCollection.AddSingleton<IBlobStorage>(mockBlobStorage.Object);
             serviceCollection.AddSingleton(platformAppFlavorSettings);
+            serviceCollection.AddSingleton<IHttpClientFactory>(mockIHttpClientFactory.Object);
+            serviceCollection.AddSingleton(legacyClaSettings);
 
             ServiceProvider = serviceCollection.BuildServiceProvider();
             var appState = new AppState(mockBlobStorage.Object, new Lazy<AppBase>(() => ServiceProvider.GetRequiredService<CLA>()));
