@@ -47,6 +47,11 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
+            if (gitOpsPayload.PullRequestComment == null)
+            {
+                return appOutput;
+            }
+
             if (parameters.Length == 0)
             {
                 logger.LogInformation("No primitive available");
