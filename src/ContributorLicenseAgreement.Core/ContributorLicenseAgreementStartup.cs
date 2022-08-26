@@ -42,9 +42,13 @@
             serviceCollection.AddSingleton<IssueCommentHandler>();
             serviceCollection.AddSingleton<PushHandler>();
             serviceCollection.AddSingleton<GitHubHelper>();
-            serviceCollection.AddSingleton<LegacyClaCheckHandler>();
             serviceCollection.Configure<PlatformAppFlavorSettings>(
                 configuration.GetSection(nameof(PlatformAppFlavorSettings)));
+
+            // Legacy CLA app config. Remove once legacy app is disabled.
+            serviceCollection.AddSingleton(configuration.GetSection(nameof(LegacyClaSettings)).Get<LegacyClaSettings>());
+            serviceCollection.AddSingleton<LegacyClaCheckHandler>();
+            serviceCollection.AddSingleton<LegacyClaCommentHandler>();
         }
     }
 }
