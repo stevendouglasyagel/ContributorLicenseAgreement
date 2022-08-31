@@ -11,6 +11,16 @@ To use CLA, you need to define a [cla.yml](src/ContributorLicenseAgreement.Core.
 This YAML file defines how the CLA should act, what the agreement should be, and which accounts are exempt from signing.
 Furthermore, the *Microsoft GitHub Policy Service* needs to be installed for your organization.
 
+### cla.yml - required properties
+- **files**: defines the minimum number of files changed for cla to act.
+- **codeLines**: defines the minimum number of code lines changed for cla to act.
+- **claContent**: the contribution licence agreement the author should sign.
+
+### cla.yml - optional properties
+- **bypassUsers**: defines the users for which the cla check is omitted.
+- **prohibitedCompanies**: defines the companies for which users cannot sign a cla.
+- **autoSignMsftEmployee**: if set to true, Microsoft employees will not be asked to sign a cla.
+
 ## Commands
 
 Whenever a pull request is created, CLA will check whether or not to user who opened the pr has 
