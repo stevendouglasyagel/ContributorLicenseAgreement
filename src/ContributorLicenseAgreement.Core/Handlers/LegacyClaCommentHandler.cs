@@ -10,16 +10,19 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Apps.Abstractions.AppEventHandler;
     using GitOps.Apps.Abstractions.Models;
     using GitOps.Clients.GitHub;
+    using Microsoft.Extensions.Logging;
 
     public class LegacyClaCommentHandler : IAppEventHandler
     {
         private readonly LegacyClaSettings legacyClaSettings;
         private readonly IGitHubClientAdapterFactory factory;
+        private readonly ILogger<CLA> logger;
 
-        public LegacyClaCommentHandler(LegacyClaSettings legacyClaSettings, IGitHubClientAdapterFactory factory)
+        public LegacyClaCommentHandler(LegacyClaSettings legacyClaSettings, IGitHubClientAdapterFactory factory, ILogger<CLA> logger)
         {
             this.legacyClaSettings = legacyClaSettings;
             this.factory = factory;
+            this.logger = logger;
         }
 
         public PlatformEventActions EventType => PlatformEventActions.Issue_Comment;
@@ -43,9 +46,11 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             if (!gitOpsPayload.PullRequestComment.User.Equals($"{legacyClaSettings.AppName}[bot]"))
             {
+                logger.LogInformation("Not acting on comment from {Name}", gitOpsPayload.PullRequestComment.User);
                 return appOutput;
             }
 
+            logger.LogInformation("Deleting comment from {Name}", gitOpsPayload.PullRequestComment.User);
             var client = await factory.GetGitHubClientAdapterAsync(
                 gitOpsPayload.PlatformContext.InstallationId,
                 gitOpsPayload.PlatformContext.Dns);
