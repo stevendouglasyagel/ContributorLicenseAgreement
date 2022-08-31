@@ -17,7 +17,11 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Clients.Azure.Telemetry;
     using GitOps.Clients.GitHub;
     using GitOps.Clients.GitHub.Configuration;
+    using GitOps.Clients.GitHub.Models;
+    using Microsoft.Extensions.Logging;
     using Octokit;
+    using CommitState = GitOps.Abstractions.CommitStatus.CommitState;
+    using CommitStatus = GitOps.Clients.GitHub.Models.CommitStatus;
 
     public class LegacyClaCheckHandler : IAppEventHandler
     {
@@ -25,20 +29,23 @@ namespace ContributorLicenseAgreement.Core.Handlers
         private readonly PlatformAppFlavorSettings appFlavorSettings;
         private readonly IHttpClientFactory httpClientFactory;
         private readonly LegacyClaSettings legacyClaSettings;
+        private readonly ILogger<CLA> logger;
 
         public LegacyClaCheckHandler(
             IGitHubClientAdapterFactory factory,
             PlatformAppFlavorSettings appFlavorSettings,
             IHttpClientFactory httpClientFactory,
-            LegacyClaSettings legacyClaSettings)
+            LegacyClaSettings legacyClaSettings,
+            ILogger<CLA> logger)
         {
             this.factory = factory;
             this.appFlavorSettings = appFlavorSettings;
             this.httpClientFactory = httpClientFactory;
             this.legacyClaSettings = legacyClaSettings;
+            this.logger = logger;
         }
 
-        public PlatformEventActions EventType => PlatformEventActions.Check_Run;
+        public PlatformEventActions EventType => PlatformEventActions.Status;
 
         public async Task<object> HandleEvent(GitOpsPayload gitOpsPayload, AppOutput appOutput, params object[] parameters)
         {
@@ -52,15 +59,24 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
-            if (gitOpsPayload.CheckRun.Name.Equals(Constants.CheckName))
+            if (gitOpsPayload.CommitStatusUpdate.Context.Equals(Constants.CheckName)
+                && gitOpsPayload.CommitStatusUpdate.CommitState != CommitState.Success)
             {
+                logger.LogInformation("Check run received for {Name}", gitOpsPayload.CommitStatusUpdate);
                 var tmpClient = await factory.GetGitHubRestClientAsync(
                     gitOpsPayload.PlatformContext.OrganizationName,
                     gitOpsPayload.PlatformContext.Dns);
 
-                var installations = await tmpClient.GetOrgInstallations(gitOpsPayload.PlatformContext.OrganizationName);
+                var installations = (await tmpClient.GetOrgInstallations(gitOpsPayload.PlatformContext.OrganizationName)).InstallationsList;
 
-                var installation = installations.InstallationsList.First(i => i.AppId == legacyClaSettings.AppId);
+                installations = installations.Where(i => i.AppId == legacyClaSettings.AppId).ToList();
+
+                if (!installations.Any())
+                {
+                    return appOutput;
+                }
+
+                var installation = installations.First();
 
                 var jwtFactory = new GitHubJwtFactory(
                     new StringPrivateKeySource(legacyClaSettings.PrivateKey),
@@ -72,15 +88,18 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 var dict = new Dictionary<string, IGitHubJwtFactory> { { gitOpsPayload.PlatformContext.Dns, jwtFactory } };
                 var ghFactory = new GitHubClientAdapterFactory(dict, appFlavorSettings, new AppTelemetry(null, null), httpClientFactory);
                 var client =
-                    await ghFactory.GetGitHubClientAdapterAsync(installation.Id, gitOpsPayload.PlatformContext.Dns);
-                await client.UpdateCheckRunAsync(
-                    long.Parse(gitOpsPayload.PlatformContext.RepositoryId),
-                    gitOpsPayload.CheckRun.Id,
-                    new CheckRunUpdate
+                    await ghFactory.GetGitHubRestClientAsync(installation.Id, gitOpsPayload.PlatformContext.Dns);
+                await client.CreateCommitStatus(
+                    gitOpsPayload.PlatformContext.OrganizationName,
+                    gitOpsPayload.PlatformContext.RepositoryName,
+                    gitOpsPayload.CommitStatusUpdate.Sha,
+                    new CommitStatus
                     {
-                        Status = CheckStatus.Completed,
-                        Conclusion = Enum.Parse<CheckConclusion>(Conclusion.Success.ToString(), true)
+                        State = "success",
+                        Description = Constants.CheckSuccessTitle,
+                        Context = Constants.CheckName
                     });
+                logger.LogInformation("Check run updated for {Name}", gitOpsPayload.CheckRun.Name);
             }
 
             return appOutput;
