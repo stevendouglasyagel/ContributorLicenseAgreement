@@ -12,6 +12,8 @@ namespace ContributorLicenseAgreement.Core.GitHubLinkClient
     using System.Text;
     using System.Threading.Tasks;
     using ContributorLicenseAgreement.Core.GitHubLinkClient.Model;
+    using Polly;
+    using Polly.Retry;
 
     [ExcludeFromCodeCoverage]
     public class GitHubLinkRestClient : IGitHubLinkRestClient
@@ -32,7 +34,19 @@ namespace ContributorLicenseAgreement.Core.GitHubLinkClient
         public async Task<GitHubLink> GetLink(string gitHubUser)
         {
             var route = $"links/github/{gitHubUser}?api-version={apiVersion}";
-            var response = await httpClient.GetAsync(route);
+            HttpResponseMessage response = null;
+            await Policy
+                .Handle<Exception>()
+                .OrResult<HttpResponseMessage>(r => r == null)
+                .WaitAndRetryAsync(
+                    3,
+                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+                .ExecuteAsync(async () =>
+                {
+                    response = await httpClient.GetAsync(route);
+                    return response;
+                });
+
             return await response.Content.ReadAsAsync<GitHubLink>();
         }
     }
