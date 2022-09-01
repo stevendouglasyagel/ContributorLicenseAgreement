@@ -75,7 +75,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
                 var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload, primitive.AutoSignMsftEmployee);
 
-                appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.Sender);
+                appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.User);
 
                 await gitHubHelper.CreateCheckAsync(gitOpsPayload, hasCla, long.Parse(gitOpsPayload.PullRequest.RepositoryId), gitOpsPayload.PullRequest.Sha);
 
@@ -100,7 +100,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
         private static bool NeedsLicense(ClaPrimitive primitive, PullRequest pullRequest)
         {
-            return !primitive.BypassUsers.Contains(pullRequest.Sender)
+            return !primitive.BypassUsers.Contains(pullRequest.User)
                    && !primitive.BypassOrgs.Contains(pullRequest.OrganizationName)
                    && pullRequest.Files.Sum(f => f.Changes) >= primitive.MinimalChangeRequired.CodeLines
                    && pullRequest.Files.Count >= primitive.MinimalChangeRequired.Files;
