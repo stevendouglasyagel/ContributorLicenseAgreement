@@ -5,7 +5,6 @@
 
 namespace ContributorLicenseAgreement.Core.Handlers
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
@@ -17,9 +16,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Clients.Azure.Telemetry;
     using GitOps.Clients.GitHub;
     using GitOps.Clients.GitHub.Configuration;
-    using GitOps.Clients.GitHub.Models;
     using Microsoft.Extensions.Logging;
-    using Octokit;
     using CommitState = GitOps.Abstractions.CommitStatus.CommitState;
     using CommitStatus = GitOps.Clients.GitHub.Models.CommitStatus;
 
@@ -62,7 +59,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             if (gitOpsPayload.CommitStatusUpdate.Context.Equals(Constants.CheckName)
                 && gitOpsPayload.CommitStatusUpdate.CommitState != CommitState.Success)
             {
-                logger.LogInformation("Check run received for {Name}", gitOpsPayload.CommitStatusUpdate);
+                logger.LogInformation("Stauts received for {Name}", gitOpsPayload.CommitStatusUpdate.Context);
                 var tmpClient = await factory.GetGitHubRestClientAsync(
                     gitOpsPayload.PlatformContext.OrganizationName,
                     gitOpsPayload.PlatformContext.Dns);
