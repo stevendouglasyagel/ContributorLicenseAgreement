@@ -62,7 +62,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             if (gitOpsPayload.CommitStatusUpdate.Context.Equals(Constants.CheckName)
                 && gitOpsPayload.CommitStatusUpdate.CommitState != CommitState.Success)
             {
-                logger.LogInformation("Check run received for {Name}", gitOpsPayload.CommitStatusUpdate);
+                logger.LogInformation("Stauts received for {Name}", gitOpsPayload.CommitStatusUpdate.Context);
                 var tmpClient = await factory.GetGitHubRestClientAsync(
                     gitOpsPayload.PlatformContext.OrganizationName,
                     gitOpsPayload.PlatformContext.Dns);
