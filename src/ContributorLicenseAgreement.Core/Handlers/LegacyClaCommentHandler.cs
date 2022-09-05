@@ -29,6 +29,12 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
         public async Task<object> HandleEvent(GitOpsPayload gitOpsPayload, AppOutput appOutput, params object[] parameters)
         {
+            if (parameters.Length == 0)
+            {
+                logger.LogInformation("No primitive available");
+                return appOutput;
+            }
+
             if (!legacyClaSettings.Enabled)
             {
                 return appOutput;
