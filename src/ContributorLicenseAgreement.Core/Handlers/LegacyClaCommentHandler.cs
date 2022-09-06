@@ -5,7 +5,10 @@
 
 namespace ContributorLicenseAgreement.Core.Handlers
 {
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
+    using ContributorLicenseAgreement.Core.Primitives.Data;
     using GitOps.Abstractions;
     using GitOps.Apps.Abstractions.AppEventHandler;
     using GitOps.Apps.Abstractions.Models;
@@ -29,6 +32,18 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
         public async Task<object> HandleEvent(GitOpsPayload gitOpsPayload, AppOutput appOutput, params object[] parameters)
         {
+            if (parameters.Length == 0)
+            {
+                logger.LogInformation("No primitive available");
+                return appOutput;
+            }
+
+            var primitivesData = (IEnumerable<ClaPrimitive>)parameters[0];
+            if (!primitivesData.Any())
+            {
+                return appOutput;
+            }
+
             if (!legacyClaSettings.Enabled)
             {
                 return appOutput;
