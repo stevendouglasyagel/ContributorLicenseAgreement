@@ -19,14 +19,14 @@ namespace ContributorLicenseAgreement.Core.GitHubLinkClient
         private readonly HttpClient httpClient;
         private readonly string apiVersion;
 
-        public GitHubLinkRestClient(string apiUrl, string token, string apiVersion)
+        public GitHubLinkRestClient(OspoGitHubLinkSettings ospoGitHubLinkSettings, IHttpClientFactory httpClientFactory)
         {
-            httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri(apiUrl);
-            var authInfo = $":{token}";
+            httpClient = httpClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(ospoGitHubLinkSettings.ApiUrl);
+            var authInfo = $":{ospoGitHubLinkSettings.ApiToken}";
             httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.Default.GetBytes(authInfo)));
-            this.apiVersion = apiVersion;
+            this.apiVersion = ospoGitHubLinkSettings.ApiVersion;
         }
 
         public async Task<GitHubLink> GetLink(string gitHubUser)

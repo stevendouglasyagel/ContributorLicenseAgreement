@@ -29,23 +29,32 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
         private readonly IGitHubClientAdapterFactory factory;
         private readonly AppState appState;
         private readonly PlatformAppFlavorSettings flavorSettings;
+        private readonly IHttpClientFactory httpClientFactory;
         private readonly ILogger<CLA> logger;
 
         public GitHubHelper(
             IGitHubClientAdapterFactory factory,
             AppState appState,
             PlatformAppFlavorSettings flavorSettings,
+            IHttpClientFactory httpClientFactory,
             ILogger<CLA> logger)
         {
             this.factory = factory;
             this.appState = appState;
             this.flavorSettings = flavorSettings;
+            this.httpClientFactory = httpClientFactory;
             this.logger = logger;
         }
 
-        internal async Task UpdateChecksAsync(GitOpsPayload gitOpsPayload, bool hasCla, string gitHubUser)
+        internal static string GenerateKey(string gitHubUser, string claLink)
         {
-            var shas = await appState.ReadState<List<(long, string)>>($"{Constants.Check}-{gitHubUser}");
+            claLink = claLink.Replace("/", string.Empty).Replace("?", string.Empty).Replace(":", string.Empty);
+            return $"{gitHubUser}-{claLink}";
+        }
+
+        internal async Task UpdateChecksAsync(GitOpsPayload gitOpsPayload, bool hasCla, string gitHubUser, string claLink)
+        {
+            var shas = await appState.ReadState<List<(long, string)>>($"{Constants.Check}-{GitHubHelper.GenerateKey(gitHubUser, claLink)}");
 
             if (shas == null)
             {
@@ -86,7 +95,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                 return null;
             }
 
-            var response = await new HttpClient().GetAsync(primitive.ClaContent);
+            var response = await httpClientFactory.CreateClient().GetAsync(primitive.ClaContent);
             var agreement = new DeserializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).Build()
                 .Deserialize<ClaAgreement>(await response.Content.ReadAsStringAsync());
 
@@ -143,7 +152,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             };
         }
 
-        internal SignedCla CreateCla(bool isEmployee, string gitHubUser, AppOutput appOutput, string company, string msftMail = null)
+        internal SignedCla CreateCla(bool isEmployee, string gitHubUser, AppOutput appOutput, string company, string claLink, string msftMail = null)
         {
             var cla = new ContributorLicenseAgreement.Core.Handlers.Model.SignedCla
             {
@@ -156,12 +165,12 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                 CanSelfTerminate = true
             };
 
-            appOutput.States = GenerateStates(gitHubUser, cla);
+            appOutput.States = GenerateStates(gitHubUser, claLink, cla);
 
             return cla;
         }
 
-        internal States CreateClas(List<string> gitHubUsers, string company)
+        internal States CreateClas(List<string> gitHubUsers, string company, string claLink)
         {
             var dict = new System.Collections.Generic.Dictionary<string, object>();
 
@@ -175,7 +184,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                     Company = company,
                     CanSelfTerminate = false
                 };
-                dict.Add(gitHubUser, cla);
+                dict.Add(GenerateKey(gitHubUser, claLink), cla);
             }
 
             return new States
@@ -184,9 +193,9 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             };
         }
 
-        internal async Task<SignedCla> ExpireCla(string gitHubUser, bool user = true)
+        internal async Task<SignedCla> ExpireCla(string gitHubUser, string claLink, bool user = true)
         {
-            var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(gitHubUser);
+            var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(GenerateKey(gitHubUser, claLink));
             if (!cla.CanSelfTerminate && user)
             {
                 logger.LogError("This cla cannot be terminated by user {User}", gitHubUser);
@@ -198,12 +207,12 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             return cla;
         }
 
-        internal States GenerateStates(string gitHubUser, ContributorLicenseAgreement.Core.Handlers.Model.SignedCla cla)
+        internal States GenerateStates(string gitHubUser, string claLink, ContributorLicenseAgreement.Core.Handlers.Model.SignedCla cla)
         {
             {
                 return new States
                 {
-                    StateCollection = new System.Collections.Generic.Dictionary<string, object> { { gitHubUser, cla } }
+                    StateCollection = new System.Collections.Generic.Dictionary<string, object> { { GenerateKey(gitHubUser, claLink), cla } }
                 };
             }
         }
