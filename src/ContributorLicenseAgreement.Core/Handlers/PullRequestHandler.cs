@@ -82,7 +82,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 };
 
                 appOutput.States.StateCollection.Add(
-                    $"{Constants.Check}-{GitHubHelper.GenerateKey(gitOpsPayload.PullRequest.User, primitive.ClaContent)}", await AddCheckToStatesAsync(gitOpsPayload));
+                    $"{Constants.Check}-{GitHubHelper.GenerateKey(gitOpsPayload.PullRequest.User, primitive.ClaContent)}", await AddCheckToStatesAsync(gitOpsPayload, primitive.ClaContent));
             }
             else
             {
@@ -159,9 +159,9 @@ namespace ContributorLicenseAgreement.Core.Handlers
             };
         }
 
-        private async Task<List<(long, string)>> AddCheckToStatesAsync(GitOpsPayload payload)
+        private async Task<List<(long, string)>> AddCheckToStatesAsync(GitOpsPayload payload, string claLink)
         {
-            var key = $"{Constants.Check}-{payload.PullRequest.User}";
+            var key = $"{Constants.Check}-{GitHubHelper.GenerateKey(payload.PullRequest.User, claLink)}";
 
             var checks = await appState.ReadState<List<(long, string)>>(key);
 

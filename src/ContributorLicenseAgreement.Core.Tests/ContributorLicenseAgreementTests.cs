@@ -115,8 +115,8 @@ namespace ContributorLicenseAgreement.Core.Tests
 
             Assert.Equal(Conclusion.Success, appOutput.Conclusion);
             Assert.NotNull(appOutput.States);
-            Assert.Contains("test-employee", appOutput.States.StateCollection.Keys);
-            Assert.Contains("test-ex-employee", appOutput.States.StateCollection.Keys);
+            Assert.Contains("test-employee-httpstest3.yml", appOutput.States.StateCollection.Keys);
+            Assert.Contains("test-ex-employee-httpstest3.yml", appOutput.States.StateCollection.Keys);
         }
 
         private async Task<AppOutput> Comment(string comment)

@@ -84,7 +84,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             foreach (var user in removals)
             {
                 await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, user, primitive.ClaContent);
-                states.StateCollection.Add(user, await gitHubHelper.ExpireCla(user, primitive.ClaContent, false));
+                states.StateCollection.Add(GitHubHelper.GenerateKey(user, primitive.ClaContent), await gitHubHelper.ExpireCla(user, primitive.ClaContent, false));
                 logger.LogInformation(
                     "CLA terminated on behalf of GitHub-user: {User} for {Company} by {Sender}", user, companyName, gitOpsPayload.Push.Sender);
             }

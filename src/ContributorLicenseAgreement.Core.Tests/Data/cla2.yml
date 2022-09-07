@@ -4,7 +4,7 @@ description: CLA policy file.
 resource: repository
 configuration:
   claPrimitive:
-    claContent: https://test3.yml
+    claContent: https://test1.yml
     minimalChangeRequired:
       files: 1
       codeLines: 1
