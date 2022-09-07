@@ -5,8 +5,10 @@
 
 namespace ContributorLicenseAgreement.Core.Handlers
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using ContributorLicenseAgreement.Core.GitHubLinkClient;
     using ContributorLicenseAgreement.Core.Handlers.Helpers;
@@ -17,6 +19,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Apps.Abstractions.Models;
     using GitOps.Clients.Aad;
     using Microsoft.Extensions.Logging;
+    using Polly;
     using PullRequest = GitOps.Abstractions.PullRequest;
 
     internal class PullRequestHandler : IAppEventHandler
@@ -117,7 +120,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 }
 
                 var gitHubLink = await gitHubLinkClient.GetLink(gitHubUser);
-                if (gitHubLink.GitHub == null)
+                if (gitHubLink?.GitHub == null)
                 {
                     return false;
                 }
@@ -133,8 +136,20 @@ namespace ContributorLicenseAgreement.Core.Handlers
             }
             else
             {
-                var user = await aadRequestClient.ResolveUserAsync(cla.MsftMail);
-                return user.WasResolved;
+                ResolvedUser user = null;
+                await Policy
+                    .Handle<Exception>()
+                    .OrResult<ResolvedUser>(r => r == null)
+                    .WaitAndRetryAsync(
+                        3,
+                        retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+                    .ExecuteAsync(async () =>
+                    {
+                        user = await aadRequestClient.ResolveUserAsync(cla.MsftMail);
+                        return user;
+                    });
+
+                return user is { WasResolved: true };
             }
         }
 
