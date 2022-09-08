@@ -79,19 +79,19 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 primitive.SignRepos.First(r => r.RepoName.Equals(gitOpsPayload.Push.RepositoryName)).CompanyName;
 
             var states = gitHubHelper.CreateClas(
-                additions, companyName);
+                additions, companyName, primitive.ClaContent);
 
             foreach (var user in removals)
             {
-                await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, user);
-                states.StateCollection.Add(user, await gitHubHelper.ExpireCla(user, false));
+                await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, user, primitive.ClaContent);
+                states.StateCollection.Add(GitHubHelper.GenerateKey(user, primitive.ClaContent), await gitHubHelper.ExpireCla(user, primitive.ClaContent, false));
                 logger.LogInformation(
                     "CLA terminated on behalf of GitHub-user: {User} for {Company} by {Sender}", user, companyName, gitOpsPayload.Push.Sender);
             }
 
             foreach (var user in additions)
             {
-                await gitHubHelper.UpdateChecksAsync(gitOpsPayload, true, user);
+                await gitHubHelper.UpdateChecksAsync(gitOpsPayload, true, user, primitive.ClaContent);
                 logger.LogInformation(
                     "CLA signed on behalf of GitHub-user: {User} for {Company} by {Sender}", user, companyName, gitOpsPayload.Push.Sender);
             }

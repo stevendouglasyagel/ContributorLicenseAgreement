@@ -60,20 +60,20 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
+            var primitive = primitivesData.First();
+
             if (gitOpsPayload.PlatformContext.ActionType == PlatformEventActions.Closed)
             {
-                appOutput.States = await CleanUpChecks(gitOpsPayload);
+                appOutput.States = await CleanUpChecks(gitOpsPayload, primitive.ClaContent);
                 logger.LogInformation("Checks cleaned up");
                 return appOutput;
             }
-
-            var primitive = primitivesData.First();
 
             if (NeedsLicense(primitive, gitOpsPayload.PullRequest))
             {
                 logger.LogInformation("License needed for {Sender}", gitOpsPayload.PullRequest.User);
 
-                var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload, primitive.AutoSignMsftEmployee);
+                var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload, primitive.AutoSignMsftEmployee, primitive.ClaContent);
 
                 appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.User);
 
@@ -85,7 +85,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 };
 
                 appOutput.States.StateCollection.Add(
-                    $"{Constants.Check}-{gitOpsPayload.PullRequest.User}", await AddCheckToStatesAsync(gitOpsPayload));
+                    $"{Constants.Check}-{GitHubHelper.GenerateKey(gitOpsPayload.PullRequest.User, primitive.ClaContent)}", await AddCheckToStatesAsync(gitOpsPayload, primitive.ClaContent));
             }
             else
             {
@@ -106,11 +106,11 @@ namespace ContributorLicenseAgreement.Core.Handlers
                    && pullRequest.Files.Count >= primitive.MinimalChangeRequired.Files;
         }
 
-        private async Task<bool> HasSignedClaAsync(AppOutput appOutput, GitOpsPayload gitOpsPayload, bool autoSignMsftEmployee)
+        private async Task<bool> HasSignedClaAsync(AppOutput appOutput, GitOpsPayload gitOpsPayload, bool autoSignMsftEmployee, string claLink)
         {
             var gitHubUser = gitOpsPayload.PullRequest.User;
 
-            var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(gitHubUser);
+            var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(GitHubHelper.GenerateKey(gitHubUser, claLink));
 
             if (cla == null)
             {
@@ -125,7 +125,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                     return false;
                 }
 
-                cla = gitHubHelper.CreateCla(true, gitHubUser, appOutput, "Microsoft", msftMail: gitHubLink.Aad.UserPrincipalName);
+                cla = gitHubHelper.CreateCla(true, gitHubUser, appOutput, "Microsoft", claLink, msftMail: gitHubLink.Aad.UserPrincipalName);
                 logger.LogInformation("CLA signed for GitHub-user: {Cla}", cla);
             }
 
@@ -153,9 +153,9 @@ namespace ContributorLicenseAgreement.Core.Handlers
             }
         }
 
-        private async Task<States> CleanUpChecks(GitOpsPayload payload)
+        private async Task<States> CleanUpChecks(GitOpsPayload payload, string claLink)
         {
-            var key = $"{Constants.Check}-{payload.PullRequest.User}";
+            var key = $"{Constants.Check}-{GitHubHelper.GenerateKey(payload.PullRequest.User, claLink)}";
             var checks = await appState.ReadState<List<string>>(key);
             if (checks == null)
             {
@@ -174,9 +174,9 @@ namespace ContributorLicenseAgreement.Core.Handlers
             };
         }
 
-        private async Task<List<(long, string)>> AddCheckToStatesAsync(GitOpsPayload payload)
+        private async Task<List<(long, string)>> AddCheckToStatesAsync(GitOpsPayload payload, string claLink)
         {
-            var key = $"{Constants.Check}-{payload.PullRequest.User}";
+            var key = $"{Constants.Check}-{GitHubHelper.GenerateKey(payload.PullRequest.User, claLink)}";
 
             var checks = await appState.ReadState<List<(long, string)>>(key);
 

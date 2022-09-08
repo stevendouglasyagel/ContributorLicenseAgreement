@@ -26,6 +26,7 @@ namespace ContributorLicenseAgreement.Core.Tests
     using Microsoft.Extensions.Logging;
     using Moq;
     using Octokit;
+    using RichardSzalay.MockHttp;
 
     public sealed class ClassFixture : IDisposable
     {
@@ -33,37 +34,37 @@ namespace ContributorLicenseAgreement.Core.Tests
         {
             var mockBlobStorage = new Mock<IBlobStorage>();
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "user0"))
+                    f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "user0-httpstest3.yml"))
                 .ReturnsAsync(new AppStateTableEntity<SignedCla> { State = new SignedCla { Employee = true, Expires = null, Signed = 1, GitHubUser = "user0", MsftMail = "user0@microsoft.com", CanSelfTerminate = true } });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "formerUser0"))
+                    f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "formerUser0-httpstest3.yml"))
                 .ReturnsAsync(new AppStateTableEntity<SignedCla> { State = new SignedCla { Employee = true, Expires = null, Signed = 1, GitHubUser = "formerUser0", MsftMail = "formerUser0@microsoft.com" } });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "externalUser0"))
+                    f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "externalUser0-httpstest3.yml"))
                 .ReturnsAsync(new AppStateTableEntity<SignedCla> { State = new SignedCla { Employee = false, Expires = null, Signed = 1, GitHubUser = "externalUser0", MsftMail = null } });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "test-ex-employee"))
+                    f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "test-ex-employee-httpstest3.yml"))
                 .ReturnsAsync(new AppStateTableEntity<SignedCla> { State = new SignedCla { Employee = false, Expires = null, Signed = 1, GitHubUser = "test-ex-employee", MsftMail = null, Company = "test" } });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "user1"))
+                    f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "user1-httpstest3.yml"))
                 .ReturnsAsync(new AppStateTableEntity<SignedCla> { State = null });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-externalUser0"))
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-externalUser0-httpstest3.yml"))
                 .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = new List<(long, string)> { (1, "sha") } });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-user0"))
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-user0-httpstest3.yml"))
                 .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = new List<(long, string)> { (1, "sha") } });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-formerUser0"))
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-formerUser0-httpstest3.yml"))
                 .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = new List<(long, string)> { (1, "sha") } });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-user1"))
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-user1-httpstest3.yml"))
                 .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = null });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-test-employee"))
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-test-employee-httpstest3.yml"))
                 .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = null });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-test-ex-employee"))
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-test-ex-employee-httpstest3.yml"))
                 .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = null });
             mockBlobStorage.Setup(f => f.DownloadBlob(It.IsAny<string>(), It.IsAny<Uri>()))
                 .ReturnsAsync(File.ReadAllText("Data/cla.yml"));
@@ -102,7 +103,11 @@ namespace ContributorLicenseAgreement.Core.Tests
                 null,
                 null);
 
+            var mockMessageHandler = new MockHttpMessageHandler();
+            mockMessageHandler.When("https://test3.yml").Respond("text/plain", File.ReadAllText("Data/claContent.yml"));
+
             var mockIHttpClientFactory = new Mock<IHttpClientFactory>();
+            mockIHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(new HttpClient(mockMessageHandler));
 
             var mockClient = new Mock<IGitHubClientAdapter>();
             mockClient.Setup(f =>

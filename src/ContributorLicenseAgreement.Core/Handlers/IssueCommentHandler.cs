@@ -77,20 +77,20 @@ namespace ContributorLicenseAgreement.Core.Handlers
             switch (commentAction)
             {
                 case CommentAction.Agree:
-                    cla = gitHubHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput, company);
-                    await gitHubHelper.UpdateChecksAsync(gitOpsPayload, true, gitOpsPayload.PullRequestComment.User);
+                    cla = gitHubHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput, company, primitive.ClaContent);
+                    await gitHubHelper.UpdateChecksAsync(gitOpsPayload, true, gitOpsPayload.PullRequestComment.User, primitive.ClaContent);
                     logger.LogInformation("CLA signed for GitHub-user: {Cla}", cla);
                     break;
                 case CommentAction.Terminate:
-                    cla = await gitHubHelper.ExpireCla(gitOpsPayload.PullRequestComment.User);
+                    cla = await gitHubHelper.ExpireCla(gitOpsPayload.PullRequestComment.User, primitive.ClaContent);
                     if (cla == null)
                     {
                         break;
                     }
 
-                    appOutput.States = gitHubHelper.GenerateStates(gitOpsPayload.PullRequestComment.User, cla);
+                    appOutput.States = gitHubHelper.GenerateStates(gitOpsPayload.PullRequestComment.User, primitive.ClaContent, cla);
                     appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
-                    await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
+                    await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, gitOpsPayload.PullRequestComment.User, primitive.ClaContent);
                     logger.LogInformation("CLA terminated for GitHub-user: {Cla}", cla);
                     break;
                 case CommentAction.Failure:
