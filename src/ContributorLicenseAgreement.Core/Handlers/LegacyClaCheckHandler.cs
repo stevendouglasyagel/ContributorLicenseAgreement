@@ -83,6 +83,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
                 if (!installations.Any())
                 {
+                    logger.LogInformation("No installation found");
                     return appOutput;
                 }
 
