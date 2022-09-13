@@ -73,21 +73,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 && gitOpsPayload.CommitStatusUpdate.CommitState != CommitState.Success)
             {
                 logger.LogInformation("Stauts received for {Name}", gitOpsPayload.CommitStatusUpdate.Context);
-                var tmpClient = await factory.GetGitHubRestClientAsync(
-                    gitOpsPayload.PlatformContext.OrganizationName,
-                    gitOpsPayload.PlatformContext.Dns);
-
-                var installations = (await tmpClient.GetOrgInstallations(gitOpsPayload.PlatformContext.OrganizationName)).InstallationsList;
-
-                installations = installations.Where(i => i.AppId == legacyClaSettings.AppId).ToList();
-
-                if (!installations.Any())
-                {
-                    logger.LogInformation("No installation found");
-                    return appOutput;
-                }
-
-                var installation = installations.First();
 
                 var jwtFactory = new GitHubJwtFactory(
                     new StringPrivateKeySource(legacyClaSettings.PrivateKey),
@@ -99,7 +84,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 var dict = new Dictionary<string, IGitHubJwtFactory> { { gitOpsPayload.PlatformContext.Dns, jwtFactory } };
                 var ghFactory = new GitHubClientAdapterFactory(dict, appFlavorSettings, new AppTelemetry(null, null), httpClientFactory);
                 var client =
-                    await ghFactory.GetGitHubRestClientAsync(installation.Id, gitOpsPayload.PlatformContext.Dns);
+                    await ghFactory.GetGitHubRestClientAsync(gitOpsPayload.PlatformContext.OrganizationName, gitOpsPayload.PlatformContext.Dns);
                 await client.CreateCommitStatus(
                     gitOpsPayload.PlatformContext.OrganizationName,
                     gitOpsPayload.PlatformContext.RepositoryName,
