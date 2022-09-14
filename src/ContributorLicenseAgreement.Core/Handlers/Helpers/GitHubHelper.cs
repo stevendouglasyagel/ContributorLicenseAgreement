@@ -8,6 +8,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Net.Http;
     using System.Reflection;
     using System.Threading.Tasks;
@@ -23,6 +24,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
     using Stubble.Core.Builders;
     using YamlDotNet.Serialization;
     using YamlDotNet.Serialization.NamingConventions;
+    using PullRequest = GitOps.Abstractions.PullRequest;
 
     public class GitHubHelper
     {
@@ -196,6 +198,12 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
         internal async Task<SignedCla> ExpireCla(string gitHubUser, string claLink, bool user = true)
         {
             var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(GenerateKey(gitHubUser, claLink));
+            if (cla == null)
+            {
+                logger.LogError("No cla to terminate");
+                return null;
+            }
+
             if (!cla.CanSelfTerminate && user)
             {
                 logger.LogError("This cla cannot be terminated by user {User}", gitHubUser);
