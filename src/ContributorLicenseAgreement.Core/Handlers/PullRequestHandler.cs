@@ -8,7 +8,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using ContributorLicenseAgreement.Core.GitHubLinkClient;
     using ContributorLicenseAgreement.Core.Handlers.Helpers;
@@ -20,6 +19,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Clients.Aad;
     using Microsoft.Extensions.Logging;
     using Polly;
+    using Check = ContributorLicenseAgreement.Core.Handlers.Model.Check;
     using PullRequest = GitOps.Abstractions.PullRequest;
 
     internal class PullRequestHandler : IAppEventHandler
@@ -27,20 +27,26 @@ namespace ContributorLicenseAgreement.Core.Handlers
         private readonly AppState appState;
         private readonly IAadRequestClient aadRequestClient;
         private readonly IGitHubLinkRestClient gitHubLinkClient;
-        private readonly GitHubHelper gitHubHelper;
+        private readonly ClaHelper claHelper;
+        private readonly CheckHelper checkHelper;
+        private readonly CommentHelper commentHelper;
         private readonly ILogger<CLA> logger;
 
         public PullRequestHandler(
             AppState appState,
             IAadRequestClient aadRequestClient,
             IGitHubLinkRestClient gitHubLinkClient,
-            GitHubHelper gitHubHelper,
+            ClaHelper claHelper,
+            CheckHelper checkHelper,
+            CommentHelper commentHelper,
             ILogger<CLA> logger)
         {
             this.appState = appState;
             this.aadRequestClient = aadRequestClient;
             this.gitHubLinkClient = gitHubLinkClient;
-            this.gitHubHelper = gitHubHelper;
+            this.claHelper = claHelper;
+            this.checkHelper = checkHelper;
+            this.commentHelper = commentHelper;
             this.logger = logger;
         }
 
@@ -64,7 +70,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             if (gitOpsPayload.PlatformContext.ActionType == PlatformEventActions.Closed)
             {
-                appOutput.States = await CleanUpChecks(gitOpsPayload, primitive.ClaContent);
+                appOutput.States = await checkHelper.CleanUpChecks(gitOpsPayload, primitive.ClaContent);
                 logger.LogInformation("Checks cleaned up");
                 return appOutput;
             }
@@ -75,9 +81,19 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
                 var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload, primitive.AutoSignMsftEmployee, primitive.ClaContent);
 
-                appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.User);
+                appOutput.Comment = await commentHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.User);
 
-                await gitHubHelper.CreateCheckAsync(gitOpsPayload, hasCla, long.Parse(gitOpsPayload.PullRequest.RepositoryId), gitOpsPayload.PullRequest.Sha);
+                var check = new Check
+                {
+                    Sha = gitOpsPayload.PullRequest.Sha,
+                    RepoId = long.Parse(gitOpsPayload.PullRequest.RepositoryId),
+                    InstallationId = gitOpsPayload.PlatformContext.InstallationId
+                };
+
+                await checkHelper.CreateCheckAsync(
+                    gitOpsPayload,
+                    hasCla,
+                    check);
 
                 appOutput.States ??= new States
                 {
@@ -85,12 +101,16 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 };
 
                 appOutput.States.StateCollection.Add(
-                    $"{Constants.Check}-{GitHubHelper.GenerateKey(gitOpsPayload.PullRequest.User, primitive.ClaContent)}", await AddCheckToStatesAsync(gitOpsPayload, primitive.ClaContent));
+                    $"{Constants.Check}-{ClaHelper.GenerateKey(gitOpsPayload.PullRequest.User, primitive.ClaContent)}",
+                    await checkHelper.AddCheckToStatesAsync(gitOpsPayload, check, primitive.ClaContent));
             }
             else
             {
                 logger.LogInformation("No license needed for {Sender}", gitOpsPayload.PullRequest.User);
-                await gitHubHelper.CreateCheckAsync(gitOpsPayload, true, long.Parse(gitOpsPayload.PullRequest.RepositoryId), gitOpsPayload.PullRequest.Sha);
+                await checkHelper.CreateCheckAsync(
+                    gitOpsPayload,
+                    true,
+                    new Check { Sha = gitOpsPayload.PullRequest.Sha, RepoId = long.Parse(gitOpsPayload.PullRequest.RepositoryId), InstallationId = gitOpsPayload.PlatformContext.InstallationId });
             }
 
             appOutput.Conclusion = Conclusion.Success;
@@ -110,7 +130,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
         {
             var gitHubUser = gitOpsPayload.PullRequest.User;
 
-            var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(GitHubHelper.GenerateKey(gitHubUser, claLink));
+            var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(ClaHelper.GenerateKey(gitHubUser, claLink));
 
             if (cla == null)
             {
@@ -125,7 +145,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                     return false;
                 }
 
-                cla = gitHubHelper.CreateCla(true, gitHubUser, appOutput, "Microsoft", claLink, msftMail: gitHubLink.Aad.UserPrincipalName);
+                cla = claHelper.CreateCla(true, gitHubUser, appOutput, "Microsoft", claLink, msftMail: gitHubLink.Aad.UserPrincipalName);
                 logger.LogInformation("CLA signed for GitHub-user: {Cla}", cla);
             }
 
@@ -151,40 +171,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
                 return user is { WasResolved: true };
             }
-        }
-
-        private async Task<States> CleanUpChecks(GitOpsPayload payload, string claLink)
-        {
-            var key = $"{Constants.Check}-{GitHubHelper.GenerateKey(payload.PullRequest.User, claLink)}";
-            var checks = await appState.ReadState<List<string>>(key);
-            if (checks == null)
-            {
-                return null;
-            }
-
-            return new States
-            {
-                StateCollection = new System.Collections.Generic.Dictionary<string, object>
-                {
-                    {
-                        key,
-                        checks.Where(s => !s.Equals(payload.PullRequest.Sha)).ToList()
-                    }
-                }
-            };
-        }
-
-        private async Task<List<(long, string)>> AddCheckToStatesAsync(GitOpsPayload payload, string claLink)
-        {
-            var key = $"{Constants.Check}-{GitHubHelper.GenerateKey(payload.PullRequest.User, claLink)}";
-
-            var checks = await appState.ReadState<List<(long, string)>>(key);
-
-            checks = checks ?? new List<(long, string)>();
-
-            checks.Add((long.Parse(payload.PullRequest.RepositoryId), payload.PullRequest.Sha));
-
-            return checks;
         }
     }
 }

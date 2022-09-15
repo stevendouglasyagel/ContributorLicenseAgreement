@@ -49,23 +49,23 @@ namespace ContributorLicenseAgreement.Core.Tests
                     f.ReadTableEntityAsync<AppStateTableEntity<SignedCla>>("AppStates", It.IsAny<string>(), "user1-httpstest3.yml"))
                 .ReturnsAsync(new AppStateTableEntity<SignedCla> { State = null });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-externalUser0-httpstest3.yml"))
-                .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = new List<(long, string)> { (1, "sha") } });
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<Check>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-externalUser0-httpstest3.yml"))
+                .ReturnsAsync(new AppStateTableEntity<List<Check>> { State = new List<Check> { new Check { Sha = "sha", InstallationId = 1, RepoId = 1 } } });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-user0-httpstest3.yml"))
-                .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = new List<(long, string)> { (1, "sha") } });
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<Check>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-user0-httpstest3.yml"))
+                .ReturnsAsync(new AppStateTableEntity<List<Check>> { State = new List<Check> { new Check { Sha = "sha", InstallationId = 1, RepoId = 1 } } });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-formerUser0-httpstest3.yml"))
-                .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = new List<(long, string)> { (1, "sha") } });
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<Check>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-formerUser0-httpstest3.yml"))
+                .ReturnsAsync(new AppStateTableEntity<List<Check>> { State = new List<Check> { new Check { Sha = "sha", InstallationId = 1, RepoId = 1 } } });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-user1-httpstest3.yml"))
-                .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = null });
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<Check>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-user1-httpstest3.yml"))
+                .ReturnsAsync(new AppStateTableEntity<List<Check>> { State = null });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-test-employee-httpstest3.yml"))
-                .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = null });
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<Check>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-test-employee-httpstest3.yml"))
+                .ReturnsAsync(new AppStateTableEntity<List<Check>> { State = null });
             mockBlobStorage.Setup(f =>
-                    f.ReadTableEntityAsync<AppStateTableEntity<List<(long, string)>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-test-ex-employee-httpstest3.yml"))
-                .ReturnsAsync(new AppStateTableEntity<List<(long, string)>> { State = null });
+                    f.ReadTableEntityAsync<AppStateTableEntity<List<Check>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-test-ex-employee-httpstest3.yml"))
+                .ReturnsAsync(new AppStateTableEntity<List<Check>> { State = null });
             mockBlobStorage.Setup(f => f.DownloadBlob(It.IsAny<string>(), It.IsAny<Uri>()))
                 .ReturnsAsync(File.ReadAllText("Data/cla.yml"));
             mockBlobStorage.Setup(f => f.ListBlobs(It.IsAny<string>(), It.IsAny<string>()))
@@ -227,7 +227,9 @@ namespace ContributorLicenseAgreement.Core.Tests
             serviceCollection.AddSingleton(appState);
             serviceCollection.AddSingleton<PullRequestHandler>();
             serviceCollection.AddSingleton<IssueCommentHandler>();
-            serviceCollection.AddSingleton<GitHubHelper>();
+            serviceCollection.AddSingleton<ClaHelper>();
+            serviceCollection.AddSingleton<CommentHelper>();
+            serviceCollection.AddSingleton<CheckHelper>();
             serviceCollection.AddSingleton<CLA>();
 
             ServiceProvider = serviceCollection.BuildServiceProvider();

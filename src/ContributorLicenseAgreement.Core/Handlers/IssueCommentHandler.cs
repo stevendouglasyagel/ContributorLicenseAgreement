@@ -23,18 +23,24 @@ namespace ContributorLicenseAgreement.Core.Handlers
     {
         private readonly IGitHubClientAdapterFactory factory;
         private readonly PlatformAppFlavorSettings flavorSettings;
-        private readonly GitHubHelper gitHubHelper;
+        private readonly ClaHelper claHelper;
+        private readonly CheckHelper checkHelper;
+        private readonly CommentHelper commentHelper;
         private readonly ILogger<CLA> logger;
 
         public IssueCommentHandler(
             IGitHubClientAdapterFactory factory,
             PlatformAppFlavorSettings flavorSettings,
-            GitHubHelper gitHubHelper,
+            ClaHelper claHelper,
+            CheckHelper checkHelper,
+            CommentHelper commentHelper,
             ILogger<CLA> logger)
         {
             this.factory = factory;
             this.flavorSettings = flavorSettings;
-            this.gitHubHelper = gitHubHelper;
+            this.claHelper = claHelper;
+            this.checkHelper = checkHelper;
+            this.commentHelper = commentHelper;
             this.logger = logger;
         }
 
@@ -77,28 +83,28 @@ namespace ContributorLicenseAgreement.Core.Handlers
             switch (commentAction)
             {
                 case CommentAction.Agree:
-                    cla = gitHubHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput, company, primitive.ClaContent);
-                    await gitHubHelper.UpdateChecksAsync(gitOpsPayload, true, gitOpsPayload.PullRequestComment.User, primitive.ClaContent);
+                    cla = claHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput, company, primitive.ClaContent);
+                    await checkHelper.UpdateChecksAsync(gitOpsPayload, true, gitOpsPayload.PullRequestComment.User, primitive.ClaContent);
                     logger.LogInformation("CLA signed for GitHub-user: {Cla}", cla);
                     break;
                 case CommentAction.Terminate:
-                    cla = await gitHubHelper.ExpireCla(gitOpsPayload.PullRequestComment.User, primitive.ClaContent);
+                    cla = await claHelper.ExpireCla(gitOpsPayload.PullRequestComment.User, primitive.ClaContent);
                     if (cla == null)
                     {
                         break;
                     }
 
-                    appOutput.States = gitHubHelper.GenerateStates(gitOpsPayload.PullRequestComment.User, primitive.ClaContent, cla);
-                    appOutput.Comment = await gitHubHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
-                    await gitHubHelper.UpdateChecksAsync(gitOpsPayload, false, gitOpsPayload.PullRequestComment.User, primitive.ClaContent);
+                    appOutput.States = claHelper.GenerateStates(gitOpsPayload.PullRequestComment.User, primitive.ClaContent, cla);
+                    appOutput.Comment = await commentHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
+                    await checkHelper.UpdateChecksAsync(gitOpsPayload, false, gitOpsPayload.PullRequestComment.User, primitive.ClaContent);
                     logger.LogInformation("CLA terminated for GitHub-user: {Cla}", cla);
                     break;
                 case CommentAction.Failure:
-                    appOutput.Comment = gitHubHelper.GenerateFailureComment(gitOpsPayload, gitOpsPayload.PullRequestComment.User);
+                    appOutput.Comment = commentHelper.GenerateFailureComment(gitOpsPayload, gitOpsPayload.PullRequestComment.User);
                     logger.LogInformation("Failed CLA sign attempt: {User}", gitOpsPayload.PullRequestComment.User);
                     break;
                 case CommentAction.BlockedCompany:
-                    appOutput.Comment = gitHubHelper.GenerateFailureComment(gitOpsPayload.PullRequestComment.User, company);
+                    appOutput.Comment = commentHelper.GenerateFailureComment(gitOpsPayload.PullRequestComment.User, company);
                     logger.LogInformation("Failed CLA sign attempt on behalf of company: {User}", gitOpsPayload.PullRequestComment.User);
                     break;
             }
