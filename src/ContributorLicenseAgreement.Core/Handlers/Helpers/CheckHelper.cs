@@ -13,6 +13,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
     using GitOps.Apps.Abstractions.AppStates;
     using GitOps.Apps.Abstractions.Models;
     using GitOps.Clients.GitHub;
+    using Microsoft.Extensions.Logging;
     using Octokit;
     using Check = ContributorLicenseAgreement.Core.Handlers.Model.Check;
 
@@ -20,11 +21,13 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
     {
         private readonly AppState appState;
         private readonly IGitHubClientAdapterFactory clientAdapterFactory;
+        private readonly ILogger<CLA> logger;
 
-        public CheckHelper(IGitHubClientAdapterFactory clientAdapterFactory, AppState appState)
+        public CheckHelper(IGitHubClientAdapterFactory clientAdapterFactory, AppState appState, ILogger<CLA> logger)
         {
             this.appState = appState;
             this.clientAdapterFactory = clientAdapterFactory;
+            this.logger = logger;
         }
 
         internal async Task UpdateChecksAsync(GitOpsPayload gitOpsPayload, bool hasCla, string gitHubUser, string claLink)
@@ -42,7 +45,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             }
         }
 
-        internal async Task<CheckRun> CreateCheckAsync(GitOpsPayload gitOpsPayload, bool hasCla, Check check)
+        internal async Task CreateCheckAsync(GitOpsPayload gitOpsPayload, bool hasCla, Check check)
         {
             var client = await clientAdapterFactory.GetGitHubClientAdapterAsync(
                 check.InstallationId,
@@ -59,7 +62,14 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                 checkRun.Conclusion = Enum.Parse<CheckConclusion>(Conclusion.Success.ToString(), true);
             }
 
-            return await client.CreateCheckRunAsync(check.RepoId, checkRun);
+            try
+            {
+                await client.CreateCheckRunAsync(check.RepoId, checkRun);
+            }
+            catch
+            {
+                logger.LogInformation("Unable to create check with sha: {Sha}", check.Sha);
+            }
         }
 
         internal async Task<States> CleanUpChecks(GitOpsPayload payload, string claLink)
