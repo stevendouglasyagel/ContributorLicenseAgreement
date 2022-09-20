@@ -33,7 +33,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
         {
             if (cla || payload.PlatformContext.ActionType == PlatformEventActions.Synchronize)
             {
-                return null;
+                return new Comment { KeepHistory = true };
             }
 
             var response = await httpClientFactory.CreateClient().GetAsync(primitive.ClaContent);

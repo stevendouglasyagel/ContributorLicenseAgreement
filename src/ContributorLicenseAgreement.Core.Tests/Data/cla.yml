@@ -6,8 +6,8 @@ configuration:
   claPrimitive:
     claContent: https://test3.yml
     minimalChangeRequired:
-      files: 1
-      codeLines: 1
+      files: 2
+      codeLines: 3
     bypassUsers:
       - test
     bypassOrgs:
