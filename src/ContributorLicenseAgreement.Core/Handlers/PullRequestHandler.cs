@@ -122,8 +122,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
         {
             return !primitive.BypassUsers.Contains(pullRequest.User)
                    && !primitive.BypassOrgs.Contains(pullRequest.OrganizationName)
-                   && pullRequest.Files.Sum(f => f.Changes) >= primitive.MinimalChangeRequired.CodeLines
-                   && pullRequest.Files.Count >= primitive.MinimalChangeRequired.Files;
+                   && (pullRequest.Files.Sum(f => f.Changes) >= primitive.MinimalChangeRequired.CodeLines
+                       || pullRequest.Files.Count >= primitive.MinimalChangeRequired.Files);
         }
 
         private async Task<bool> HasSignedClaAsync(AppOutput appOutput, GitOpsPayload gitOpsPayload, bool autoSignMsftEmployee, string claLink)
@@ -132,7 +132,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(ClaHelper.GenerateKey(gitHubUser, claLink));
 
-            if (cla == null)
+            if (cla == null || (cla.Employee && cla.MsftMail == null))
             {
                 if (!autoSignMsftEmployee)
                 {

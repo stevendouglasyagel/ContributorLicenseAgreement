@@ -31,7 +31,12 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
 
         internal async Task<Comment> GenerateClaCommentAsync(ClaPrimitive primitive, GitOpsPayload payload, bool cla, string gitHubUser)
         {
-            if (cla || payload.PlatformContext.ActionType == PlatformEventActions.Synchronize)
+            if (payload.PlatformContext.ActionType == PlatformEventActions.Synchronize)
+            {
+                return new Comment { KeepHistory = true };
+            }
+
+            if (cla)
             {
                 return null;
             }
