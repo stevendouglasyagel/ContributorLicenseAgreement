@@ -120,11 +120,21 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 gitOpsPayload.PlatformContext.InstallationId,
                 gitOpsPayload.PlatformContext.Dns);
 
-            var pr = await client.GetPullRequestAsync(
-                long.Parse(gitOpsPayload.PlatformContext.RepositoryId),
-                gitOpsPayload.PullRequestComment.PullRequestNumber);
-
-            return pr.User.Login.Equals(gitOpsPayload.PullRequestComment.User);
+            try
+            {
+                var pr = await client.GetPullRequestAsync(
+                    long.Parse(gitOpsPayload.PlatformContext.RepositoryId),
+                    gitOpsPayload.PullRequestComment.PullRequestNumber);
+                return pr.User.Login.Equals(gitOpsPayload.PullRequestComment.User);
+            }
+            catch
+            {
+                logger.LogInformation(
+                    "Unable to get pr {Number} for {Repo}",
+                    gitOpsPayload.PullRequestComment.PullRequestNumber,
+                    gitOpsPayload.PlatformContext.RepositoryName);
+                return false;
+            }
         }
 
         private (CommentAction, string) ParseComment(string comment, string host, ClaPrimitive primitive)
