@@ -3,7 +3,7 @@
 ## What is CLA?
 
 CLA is a tool that allows outside contributors to sign a contribution license agreement (cla).
-With this agreement signed, external contributors can contribute code to Microsoft open-source repos.
+With this agreement signed, external contributors can contribute code to Microsoft open-source repos. Built on [Microsoft GitHub Policy Service](https://github.com/microsoft/gitops) platform.
 
 ## Usage
 
