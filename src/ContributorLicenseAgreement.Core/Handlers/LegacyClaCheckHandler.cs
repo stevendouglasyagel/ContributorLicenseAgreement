@@ -72,7 +72,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             if (gitOpsPayload.CommitStatusUpdate.Context.Equals(Constants.CheckName)
                 && gitOpsPayload.CommitStatusUpdate.CommitState != CommitState.Success)
             {
-                logger.LogInformation("Stauts received for {Name}", gitOpsPayload.CommitStatusUpdate.Context);
+                logger.LogInformation("Status received for {Name}", gitOpsPayload.CommitStatusUpdate.Context);
 
                 var jwtFactory = new GitHubJwtFactory(
                     new StringPrivateKeySource(legacyClaSettings.PrivateKey),
@@ -95,7 +95,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                         Description = Constants.CheckSuccessTitle,
                         Context = Constants.CheckName
                     });
-                logger.LogInformation("Check run updated for {Name}", gitOpsPayload.CheckRun.Name);
+                logger.LogInformation("Status updated for {Name}", gitOpsPayload.CommitStatusUpdate.Context);
             }
 
             return appOutput;
