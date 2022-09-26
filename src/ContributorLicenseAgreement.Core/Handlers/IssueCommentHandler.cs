@@ -86,6 +86,11 @@ namespace ContributorLicenseAgreement.Core.Handlers
                     cla = claHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput, company, primitive.ClaContent);
                     await checkHelper.UpdateChecksAsync(gitOpsPayload, true, gitOpsPayload.PullRequestComment.User, primitive.ClaContent);
                     logger.LogInformation("CLA signed for GitHub-user: {Cla}", cla);
+                    logger.LogInformation(
+                        "Signing PR: {Org}/{Repo}: {Pr}",
+                        gitOpsPayload.PlatformContext.OrganizationName,
+                        gitOpsPayload.PlatformContext.RepositoryName,
+                        gitOpsPayload.PullRequestComment.PullRequestNumber);
                     break;
                 case CommentAction.Terminate:
                     cla = await claHelper.ExpireCla(gitOpsPayload.PullRequestComment.User, primitive.ClaContent);
