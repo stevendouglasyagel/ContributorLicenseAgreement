@@ -31,8 +31,8 @@ already signed an agreement. If not, it will output a comment prompting the user
 To accept the agreement, the user can issue one of the following two commands.
 
 ```
-@bot aggree
-@bot aggree company="your company"
+@bot agree
+@bot agree company="your company"
 ```
 
 ### Terminating
