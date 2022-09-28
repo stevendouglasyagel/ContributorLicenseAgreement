@@ -17,9 +17,9 @@ namespace ContributorLicenseAgreement.Core.Primitives.Data
     /// The app can define any kind of model here and then implement a
     /// corresponding behavior of this primitive.
     /// </summary>
-    public sealed class ClaPrimitive : IPrimitive
+    public sealed class Cla : IPrimitive
     {
-        public string ClaContent { get; set; }
+        public string Content { get; set; }
 
         public MinimalChangeRequired MinimalChangeRequired { get; set; }
 

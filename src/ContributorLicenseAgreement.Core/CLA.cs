@@ -37,8 +37,8 @@ namespace ContributorLicenseAgreement.Core
             };
 
             var primitives = (await primitiveCollection.GetOrgPolicies(gitOpsPayload))
-                .Where(p => p is ClaPrimitive)
-                .Cast<ClaPrimitive>();
+                .Where(p => p is Cla)
+                .Cast<Cla>();
 
             await appEventHandlerOrchestrator.HandleEvent(gitOpsPayload, appOutput, primitives, Id);
 

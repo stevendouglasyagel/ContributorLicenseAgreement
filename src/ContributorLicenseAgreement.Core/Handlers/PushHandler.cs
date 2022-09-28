@@ -47,7 +47,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
-            var primitivesData = (IEnumerable<ClaPrimitive>)parameters[0];
+            var primitivesData = (IEnumerable<Cla>)parameters[0];
             if (!primitivesData.Any())
             {
                 return appOutput;
@@ -55,10 +55,17 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             var primitive = primitivesData.First();
 
-            if (!primitive.SignRepos.Any(r => r.RepoName.Equals(gitOpsPayload.Push.RepositoryName))
-                || !gitOpsPayload.Push.Files.Any(f => f.FileName.Equals(Constants.FileName)))
+            if (!primitive.SignRepos.Any(r => r.RepoName.Equals(gitOpsPayload.Push.RepositoryName)))
             {
-                logger.LogInformation("Not the right file/repo");
+                logger.LogInformation("Not the right repo");
+                return appOutput;
+            }
+
+            var signRepo = primitive.SignRepos.First(r => r.RepoName.Equals(gitOpsPayload.Push.RepositoryName));
+
+            if (!gitOpsPayload.Push.Files.Any(f => f.FileName.Equals(signRepo.FileName)))
+            {
+                logger.LogInformation("Not the right file");
                 return appOutput;
             }
 
@@ -68,7 +75,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
-            var file = gitOpsPayload.Push.Files.First(f => f.FileName.Equals(Constants.FileName));
+            var file = gitOpsPayload.Push.Files.First(f => f.FileName.Equals(signRepo.FileName));
 
             if (file.IsLazyLoaded)
             {
@@ -82,19 +89,19 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 primitive.SignRepos.First(r => r.RepoName.Equals(gitOpsPayload.Push.RepositoryName)).CompanyName;
 
             var states = claHelper.CreateClas(
-                additions, companyName, primitive.ClaContent);
+                additions, companyName, primitive.Content);
 
             foreach (var user in removals)
             {
-                await checkHelper.UpdateChecksAsync(gitOpsPayload, false, user, primitive.ClaContent);
-                states.StateCollection.Add(ClaHelper.GenerateKey(user, primitive.ClaContent), await claHelper.ExpireCla(user, primitive.ClaContent, false));
+                await checkHelper.UpdateChecksAsync(gitOpsPayload, false, user, primitive.Content);
+                states.StateCollection.Add(ClaHelper.GenerateKey(user, primitive.Content), await claHelper.ExpireCla(user, primitive.Content, false));
                 logger.LogInformation(
                     "CLA terminated on behalf of GitHub-user: {User} for {Company} by {Sender}", user, companyName, gitOpsPayload.Push.Sender);
             }
 
             foreach (var user in additions)
             {
-                await checkHelper.UpdateChecksAsync(gitOpsPayload, true, user, primitive.ClaContent);
+                await checkHelper.UpdateChecksAsync(gitOpsPayload, true, user, primitive.Content);
                 logger.LogInformation(
                     "CLA signed on behalf of GitHub-user: {User} for {Company} by {Sender}", user, companyName, gitOpsPayload.Push.Sender);
             }

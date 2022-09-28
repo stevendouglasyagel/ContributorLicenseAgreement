@@ -64,7 +64,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
-            var primitivesData = (IEnumerable<ClaPrimitive>)parameters[0];
+            var primitivesData = (IEnumerable<Cla>)parameters[0];
             if (!primitivesData.Any())
             {
                 return appOutput;
@@ -83,8 +83,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
             switch (commentAction)
             {
                 case CommentAction.Agree:
-                    cla = claHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput, company, primitive.ClaContent);
-                    await checkHelper.UpdateChecksAsync(gitOpsPayload, true, gitOpsPayload.PullRequestComment.User, primitive.ClaContent);
+                    cla = claHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput, company, primitive.Content);
+                    await checkHelper.UpdateChecksAsync(gitOpsPayload, true, gitOpsPayload.PullRequestComment.User, primitive.Content);
                     logger.LogInformation("CLA signed for GitHub-user: {Cla}", cla);
                     logger.LogInformation(
                         "Signing PR: {Org}/{Repo}: {Pr}",
@@ -93,15 +93,15 @@ namespace ContributorLicenseAgreement.Core.Handlers
                         gitOpsPayload.PullRequestComment.PullRequestNumber);
                     break;
                 case CommentAction.Terminate:
-                    cla = await claHelper.ExpireCla(gitOpsPayload.PullRequestComment.User, primitive.ClaContent);
+                    cla = await claHelper.ExpireCla(gitOpsPayload.PullRequestComment.User, primitive.Content);
                     if (cla == null)
                     {
                         break;
                     }
 
-                    appOutput.States = claHelper.GenerateStates(gitOpsPayload.PullRequestComment.User, primitive.ClaContent, cla);
+                    appOutput.States = claHelper.GenerateStates(gitOpsPayload.PullRequestComment.User, primitive.Content, cla);
                     appOutput.Comment = await commentHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
-                    await checkHelper.UpdateChecksAsync(gitOpsPayload, false, gitOpsPayload.PullRequestComment.User, primitive.ClaContent);
+                    await checkHelper.UpdateChecksAsync(gitOpsPayload, false, gitOpsPayload.PullRequestComment.User, primitive.Content);
                     logger.LogInformation("CLA terminated for GitHub-user: {Cla}", cla);
                     break;
                 case CommentAction.Failure:
@@ -142,7 +142,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             }
         }
 
-        private (CommentAction, string) ParseComment(string comment, string host, ClaPrimitive primitive)
+        private (CommentAction, string) ParseComment(string comment, string host, Cla primitive)
         {
             var bot = $"@{flavorSettings[host].Name}";
             var cleanedComment = ExtractPolicyServiceLine(comment, bot);

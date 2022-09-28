@@ -29,7 +29,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             this.httpClientFactory = httpClientFactory;
         }
 
-        internal async Task<Comment> GenerateClaCommentAsync(ClaPrimitive primitive, GitOpsPayload payload, bool cla, string gitHubUser)
+        internal async Task<Comment> GenerateClaCommentAsync(Cla primitive, GitOpsPayload payload, bool cla, string gitHubUser)
         {
             if (payload.PlatformContext.ActionType == PlatformEventActions.Synchronize)
             {
@@ -41,7 +41,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                 return null;
             }
 
-            var response = await httpClientFactory.CreateClient().GetAsync(primitive.ClaContent);
+            var response = await httpClientFactory.CreateClient().GetAsync(primitive.Content);
             var agreement = new DeserializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).Build()
                 .Deserialize<ClaAgreement>(await response.Content.ReadAsStringAsync());
 
