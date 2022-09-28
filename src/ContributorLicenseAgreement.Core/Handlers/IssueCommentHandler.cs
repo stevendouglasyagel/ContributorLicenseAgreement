@@ -144,13 +144,15 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
         private (CommentAction, string) ParseComment(string comment, string host, ClaPrimitive primitive)
         {
+            var bot = $"@{flavorSettings[host].Name}";
+            var cleanedComment = ExtractPolicyServiceLine(comment, bot);
             var pattern = @"[ ](?=(?:[^""]*""[^""]*"")*[^""]*$)";
             var regex = new Regex(pattern);
-            var tokens = regex.Split(comment);
+            var tokens = regex.Split(cleanedComment);
 
             CommentAction commentAction = CommentAction.Failure;
 
-            if (tokens.Length >= 2 && tokens.First().StartsWith($"@{flavorSettings[host].Name}"))
+            if (tokens.Length >= 2 && tokens.First().StartsWith(bot))
             {
                 switch (tokens[1])
                 {
@@ -194,6 +196,19 @@ namespace ContributorLicenseAgreement.Core.Handlers
             }
 
             return (commentAction, string.Empty);
+        }
+
+        private string ExtractPolicyServiceLine(string comment, string name)
+        {
+            foreach (var line in comment.Split('\n'))
+            {
+                if (line.StartsWith(name))
+                {
+                    return line;
+                }
+            }
+
+            return comment;
         }
     }
 }
