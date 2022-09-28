@@ -54,7 +54,8 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             var checkRun = new NewCheckRun(Constants.CheckName, check.Sha)
             {
                 Status = hasCla ? CheckStatus.Completed : CheckStatus.Queued,
-                Output = new NewCheckRunOutput(hasCla ? Constants.CheckSuccessTitle : Constants.CheckInProgressTitle, Constants.CheckSummary)
+                Output = new NewCheckRunOutput(hasCla ? Constants.CheckSuccessTitle : Constants.CheckInProgressTitle, Constants.CheckSummary),
+                DetailsUrl = "https://github.com/microsoft/contributorlicenseagreement"
             };
 
             if (hasCla)
