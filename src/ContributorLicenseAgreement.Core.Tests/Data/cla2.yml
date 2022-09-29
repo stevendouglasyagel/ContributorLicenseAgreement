@@ -3,8 +3,8 @@ description: CLA policy file.
 
 resource: repository
 configuration:
-  cla:
-    content: https://test1.yml
+  claPrimitive:
+    claContent: https://test3.yml
     minimalChangeRequired:
       files: 1
       codeLines: 1
@@ -16,4 +16,3 @@ configuration:
     signRepos:
       - repoName: cla-test
         companyName: test
-        fileName: approvedUsers.csv

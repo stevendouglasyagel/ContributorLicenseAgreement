@@ -67,7 +67,7 @@ namespace ContributorLicenseAgreement.Core.Tests
                     f.ReadTableEntityAsync<AppStateTableEntity<List<Check>>>("AppStates", It.IsAny<string>(), $"{Constants.Check}-test-ex-employee-httpstest3.yml"))
                 .ReturnsAsync(new AppStateTableEntity<List<Check>> { State = null });
             mockBlobStorage.Setup(f => f.DownloadBlob(It.IsAny<string>(), It.IsAny<Uri>()))
-                .ReturnsAsync(File.ReadAllText("Data/cla.yml"));
+                .ReturnsAsync(File.ReadAllText("Data/cla2.yml"));
             mockBlobStorage.Setup(f => f.ListBlobs(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<Uri> { new Uri("https://test.com/policies/microsoft.githubenterprise.com/startclean-test/gitopstest-donotdelete/orgpolicies"), new Uri("https://test.com/policies/microsoft.githubenterprise.com//test/orgpolicies") });
             var mockGitHubLinkClient = new Mock<IGitHubLinkRestClient>();
