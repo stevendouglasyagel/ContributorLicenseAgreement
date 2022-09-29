@@ -10,5 +10,7 @@ namespace ContributorLicenseAgreement.Core.Primitives.Data
         public string RepoName { get; set; }
 
         public string CompanyName { get; set; }
+
+        public string FileName { get; set; } = "approvedUsers.csv";
     }
 }

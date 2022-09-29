@@ -38,7 +38,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
-            var primitivesData = (IEnumerable<ClaPrimitive>)parameters[0];
+            var primitivesData = (IEnumerable<Cla>)parameters[0];
             if (!primitivesData.Any())
             {
                 return appOutput;

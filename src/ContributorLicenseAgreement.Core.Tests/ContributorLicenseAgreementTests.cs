@@ -102,7 +102,7 @@ namespace ContributorLicenseAgreement.Core.Tests
                     {
                         new PullRequestFile
                         {
-                            FileName = Constants.FileName,
+                            FileName = "approvedUsers.csv",
                             ContentAfterChange = "test-employee",
                             ContentBeforeChange = "test-ex-employee"
                         }

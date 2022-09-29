@@ -60,7 +60,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
-            var primitivesData = (IEnumerable<ClaPrimitive>)parameters[0];
+            var primitivesData = (IEnumerable<Cla>)parameters[0];
             if (!primitivesData.Any())
             {
                 return appOutput;
@@ -70,7 +70,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             if (gitOpsPayload.PlatformContext.ActionType == PlatformEventActions.Closed)
             {
-                appOutput.States = await checkHelper.CleanUpChecks(gitOpsPayload, primitive.ClaContent);
+                appOutput.States = await checkHelper.CleanUpChecks(gitOpsPayload, primitive.Content);
                 logger.LogInformation("Checks cleaned up");
                 return appOutput;
             }
@@ -79,7 +79,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             {
                 logger.LogInformation("License needed for {Sender}", gitOpsPayload.PullRequest.User);
 
-                var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload, primitive.AutoSignMsftEmployee, primitive.ClaContent);
+                var hasCla = await HasSignedClaAsync(appOutput, gitOpsPayload, primitive.AutoSignMsftEmployee, primitive.Content);
 
                 appOutput.Comment = await commentHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, hasCla, gitOpsPayload.PullRequest.User);
 
@@ -101,8 +101,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 };
 
                 appOutput.States.StateCollection.Add(
-                    $"{Constants.Check}-{ClaHelper.GenerateKey(gitOpsPayload.PullRequest.User, primitive.ClaContent)}",
-                    await checkHelper.AddCheckToStatesAsync(gitOpsPayload, check, primitive.ClaContent));
+                    $"{Constants.Check}-{ClaHelper.GenerateKey(gitOpsPayload.PullRequest.User, primitive.Content)}",
+                    await checkHelper.AddCheckToStatesAsync(gitOpsPayload, check, primitive.Content));
             }
             else
             {
@@ -118,7 +118,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             return appOutput;
         }
 
-        private static bool NeedsLicense(ClaPrimitive primitive, PullRequest pullRequest)
+        private static bool NeedsLicense(Cla primitive, PullRequest pullRequest)
         {
             return !primitive.BypassUsers.Contains(pullRequest.User)
                    && !primitive.BypassOrgs.Contains(pullRequest.OrganizationName)
