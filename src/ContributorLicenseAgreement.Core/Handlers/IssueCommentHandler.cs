@@ -14,6 +14,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using ContributorLicenseAgreement.Core.Primitives.Data;
     using GitOps.Abstractions;
     using GitOps.Apps.Abstractions.AppEventHandler;
+    using GitOps.Apps.Abstractions.AppStates;
     using GitOps.Apps.Abstractions.Models;
     using GitOps.Clients.GitHub;
     using GitOps.Clients.GitHub.Configuration;
@@ -21,6 +22,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
     public class IssueCommentHandler : IAppEventHandler
     {
+        private readonly AppState appState;
         private readonly IGitHubClientAdapterFactory factory;
         private readonly PlatformAppFlavorSettings flavorSettings;
         private readonly ClaHelper claHelper;
@@ -29,6 +31,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
         private readonly ILogger<CLA> logger;
 
         public IssueCommentHandler(
+            AppState appState,
             IGitHubClientAdapterFactory factory,
             PlatformAppFlavorSettings flavorSettings,
             ClaHelper claHelper,
@@ -36,6 +39,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             CommentHelper commentHelper,
             ILogger<CLA> logger)
         {
+            this.appState = appState;
             this.factory = factory;
             this.flavorSettings = flavorSettings;
             this.claHelper = claHelper;
@@ -83,11 +87,18 @@ namespace ContributorLicenseAgreement.Core.Handlers
             switch (commentAction)
             {
                 case CommentAction.Agree:
+                    cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(ClaHelper.GenerateKey(gitOpsPayload.PullRequestComment.User, primitive.Content));
+                    if (cla != null && cla.Expires == null)
+                    {
+                        logger.LogInformation("Cla already signed for user: {User}", gitOpsPayload.PullRequestComment.User);
+                        break;
+                    }
+
                     cla = claHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput, company, primitive.Content);
                     await checkHelper.UpdateChecksAsync(gitOpsPayload, true, gitOpsPayload.PullRequestComment.User, primitive.Content);
-                    logger.LogInformation("CLA signed for GitHub-user: {Cla}", cla);
                     logger.LogInformation(
-                        "Signing PR: {Org}/{Repo}: {Pr}",
+                        "CLA signed for GitHub-user: {Cla}. PR: {Org}/{Repo}: {Pr}",
+                        cla,
                         gitOpsPayload.PlatformContext.OrganizationName,
                         gitOpsPayload.PlatformContext.RepositoryName,
                         gitOpsPayload.PullRequestComment.PullRequestNumber);
