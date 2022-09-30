@@ -230,6 +230,7 @@ namespace ContributorLicenseAgreement.Core.Tests
             serviceCollection.AddSingleton<ClaHelper>();
             serviceCollection.AddSingleton<CommentHelper>();
             serviceCollection.AddSingleton<CheckHelper>();
+            serviceCollection.AddSingleton<LoggingHelper>();
             serviceCollection.AddSingleton<CLA>();
 
             ServiceProvider = serviceCollection.BuildServiceProvider();
