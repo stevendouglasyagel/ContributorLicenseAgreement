@@ -23,17 +23,20 @@ namespace ContributorLicenseAgreement.Core.Handlers
         private readonly ClaHelper claHelper;
         private readonly CheckHelper checkHelper;
         private readonly IGitHubClientAdapterFactory factory;
+        private readonly LoggingHelper loggingHelper;
         private readonly ILogger<CLA> logger;
 
         public PushHandler(
             ClaHelper claHelper,
             CheckHelper checkHelper,
             IGitHubClientAdapterFactory factory,
+            LoggingHelper loggingHelper,
             ILogger<CLA> logger)
         {
             this.claHelper = claHelper;
             this.checkHelper = checkHelper;
             this.factory = factory;
+            this.loggingHelper = loggingHelper;
             this.logger = logger;
         }
 
@@ -88,22 +91,25 @@ namespace ContributorLicenseAgreement.Core.Handlers
             var companyName =
                 primitive.SignRepos.First(r => r.RepoName.Equals(gitOpsPayload.Push.RepositoryName)).CompanyName;
 
-            var states = claHelper.CreateClas(
+            var (states, clas) = claHelper.CreateClas(
                 additions, companyName, primitive.Content);
 
             foreach (var user in removals)
             {
                 await checkHelper.UpdateChecksAsync(gitOpsPayload, false, user, primitive.Content);
-                states.StateCollection.Add(ClaHelper.GenerateKey(user, primitive.Content), await claHelper.ExpireCla(user, primitive.Content, false));
+                var cla = await claHelper.ExpireCla(user, primitive.Content, false);
+                states.StateCollection.Add(ClaHelper.GenerateKey(user, primitive.Content), cla);
                 logger.LogInformation(
                     "CLA terminated on behalf of GitHub-user: {User} for {Company} by {Sender}", user, companyName, gitOpsPayload.Push.Sender);
+                loggingHelper.LogClaTerminated(cla, gitOpsPayload.Push.Sender);
             }
 
-            foreach (var user in additions)
+            foreach (var cla in clas)
             {
-                await checkHelper.UpdateChecksAsync(gitOpsPayload, true, user, primitive.Content);
+                await checkHelper.UpdateChecksAsync(gitOpsPayload, true, cla.GitHubUser, primitive.Content);
                 logger.LogInformation(
-                    "CLA signed on behalf of GitHub-user: {User} for {Company} by {Sender}", user, companyName, gitOpsPayload.Push.Sender);
+                    "CLA signed on behalf of GitHub-user: {User} for {Company} by {Sender}", cla.GitHubUser, companyName, gitOpsPayload.Push.Sender);
+                loggingHelper.LogClaSigned(cla, gitOpsPayload.Push.Sender);
             }
 
             appOutput.States = states;

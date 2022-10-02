@@ -30,6 +30,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
         private readonly ClaHelper claHelper;
         private readonly CheckHelper checkHelper;
         private readonly CommentHelper commentHelper;
+        private readonly LoggingHelper loggingHelper;
         private readonly ILogger<CLA> logger;
 
         public PullRequestHandler(
@@ -39,6 +40,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             ClaHelper claHelper,
             CheckHelper checkHelper,
             CommentHelper commentHelper,
+            LoggingHelper loggingHelper,
             ILogger<CLA> logger)
         {
             this.appState = appState;
@@ -47,6 +49,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             this.claHelper = claHelper;
             this.checkHelper = checkHelper;
             this.commentHelper = commentHelper;
+            this.loggingHelper = loggingHelper;
             this.logger = logger;
         }
 
@@ -147,6 +150,12 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
                 cla = claHelper.CreateCla(true, gitHubUser, appOutput, "Microsoft", claLink, msftMail: gitHubLink.Aad.UserPrincipalName);
                 logger.LogInformation("CLA signed for GitHub-user: {Cla}", cla);
+                loggingHelper.LogClaSigned(
+                    cla,
+                    gitOpsPayload.PullRequest.User,
+                    gitOpsPayload.PlatformContext.OrganizationName,
+                    gitOpsPayload.PlatformContext.RepositoryName,
+                    gitOpsPayload.PullRequest.Number);
             }
 
             if (!cla.Employee)

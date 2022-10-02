@@ -49,9 +49,10 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             return cla;
         }
 
-        internal States CreateClas(List<string> gitHubUsers, string company, string claLink)
+        internal (States, IEnumerable<SignedCla>) CreateClas(List<string> gitHubUsers, string company, string claLink)
         {
             var dict = new System.Collections.Generic.Dictionary<string, object>();
+            var clas = new List<SignedCla>();
 
             foreach (var gitHubUser in gitHubUsers)
             {
@@ -64,12 +65,13 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
                     CanSelfTerminate = false
                 };
                 dict.Add(GenerateKey(gitHubUser, claLink), cla);
+                clas.Add(cla);
             }
 
-            return new States
+            return (new States
             {
                 StateCollection = dict
-            };
+            }, clas);
         }
 
         internal async Task<SignedCla> ExpireCla(string gitHubUser, string claLink, bool user = true)

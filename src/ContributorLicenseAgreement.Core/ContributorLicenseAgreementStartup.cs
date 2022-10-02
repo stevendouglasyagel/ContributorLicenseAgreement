@@ -42,6 +42,7 @@
             serviceCollection.AddSingleton<ClaHelper>();
             serviceCollection.AddSingleton<CommentHelper>();
             serviceCollection.AddSingleton<CheckHelper>();
+            serviceCollection.AddSingleton<LoggingHelper>();
             serviceCollection.Configure<PlatformAppFlavorSettings>(
                 configuration.GetSection(nameof(PlatformAppFlavorSettings)));
 

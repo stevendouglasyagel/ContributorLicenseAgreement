@@ -27,5 +27,11 @@ namespace ContributorLicenseAgreement.Core.Handlers.Model
             user = Company == null || Company.Equals(string.Empty) ? user : user + $", Company: {Company}";
             return Employee ? $"{user}, eMail: {MsftMail}" : user;
         }
+
+        public string GetParsableLog()
+        {
+            var company = Company == null || Company.Equals(string.Empty) ? " " : Company;
+            return $"{GitHubUser};{company};{MsftMail ?? " "}";
+        }
     }
 }
