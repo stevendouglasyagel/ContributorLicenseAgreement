@@ -154,6 +154,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return true;
             }
 
+            logger.LogInformation("Unable to resolve {Sender} with aad. Trying to re-create cla", gitOpsPayload.PullRequest.User);
+
             cla = await TryCreateCla(appOutput, gitOpsPayload, autoSignMsftEmployee, claLink);
 
             return cla != null && await IsStillEmployed(cla);
