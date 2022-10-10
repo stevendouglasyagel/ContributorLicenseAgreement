@@ -7,11 +7,11 @@ namespace ContributorLicenseAgreement.Core
 {
     public static class Constants
     {
-        internal const string CheckName = "license/cla";
+        public const string CheckName = "license/cla";
+        public const string CheckSuccessTitle = "All CLA requirements met.";
+        public const string CheckSummary = "This check verifies that the author has agreed to a CLA with Microsoft.";
         internal const string Check = "Check";
-        internal const string CheckSuccessTitle = "All CLA requirements met.";
         internal const string CheckInProgressTitle = "Contributor License Agreement is not agreed yet.";
-        internal const string CheckSummary = "This check verifies that the author has agreed to a CLA with Microsoft.";
         internal const string Agree = "agree";
         internal const string Terminate = "terminate";
         internal const string Company = "company";

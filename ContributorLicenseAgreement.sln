@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContributorLicenseAgreement
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContributorLicenseAgreement.Core.Tests", "src\ContributorLicenseAgreement.Core.Tests\ContributorLicenseAgreement.Core.Tests.csproj", "{CEA66F20-F84F-4B40-BDC2-C5DAC68A2ECC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManualClaCheckUpdate", "src\ManualClaCheckUpdate\ManualClaCheckUpdate.csproj", "{8B49C209-3035-43C8-900D-AD97CB21F745}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,9 +48,22 @@ Global
 		{CEA66F20-F84F-4B40-BDC2-C5DAC68A2ECC}.Release|x64.Build.0 = Release|Any CPU
 		{CEA66F20-F84F-4B40-BDC2-C5DAC68A2ECC}.Release|x86.ActiveCfg = Release|Any CPU
 		{CEA66F20-F84F-4B40-BDC2-C5DAC68A2ECC}.Release|x86.Build.0 = Release|Any CPU
+		{8B49C209-3035-43C8-900D-AD97CB21F745}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B49C209-3035-43C8-900D-AD97CB21F745}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B49C209-3035-43C8-900D-AD97CB21F745}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8B49C209-3035-43C8-900D-AD97CB21F745}.Debug|x64.Build.0 = Debug|Any CPU
+		{8B49C209-3035-43C8-900D-AD97CB21F745}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8B49C209-3035-43C8-900D-AD97CB21F745}.Debug|x86.Build.0 = Debug|Any CPU
+		{8B49C209-3035-43C8-900D-AD97CB21F745}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B49C209-3035-43C8-900D-AD97CB21F745}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B49C209-3035-43C8-900D-AD97CB21F745}.Release|x64.ActiveCfg = Release|Any CPU
+		{8B49C209-3035-43C8-900D-AD97CB21F745}.Release|x64.Build.0 = Release|Any CPU
+		{8B49C209-3035-43C8-900D-AD97CB21F745}.Release|x86.ActiveCfg = Release|Any CPU
+		{8B49C209-3035-43C8-900D-AD97CB21F745}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{0F7E7D73-0E96-477D-B52C-18185FE04A32} = {21327029-795F-420B-BA22-3BF977786963}
 		{CEA66F20-F84F-4B40-BDC2-C5DAC68A2ECC} = {21327029-795F-420B-BA22-3BF977786963}
+		{8B49C209-3035-43C8-900D-AD97CB21F745} = {21327029-795F-420B-BA22-3BF977786963}
 	EndGlobalSection
 EndGlobal
