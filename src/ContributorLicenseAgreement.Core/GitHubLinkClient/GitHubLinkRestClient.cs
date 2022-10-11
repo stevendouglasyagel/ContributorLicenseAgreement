@@ -13,7 +13,6 @@ namespace ContributorLicenseAgreement.Core.GitHubLinkClient
     using System.Threading.Tasks;
     using ContributorLicenseAgreement.Core.GitHubLinkClient.Model;
     using Polly;
-    using Polly.Retry;
 
     [ExcludeFromCodeCoverage]
     public class GitHubLinkRestClient : IGitHubLinkRestClient
