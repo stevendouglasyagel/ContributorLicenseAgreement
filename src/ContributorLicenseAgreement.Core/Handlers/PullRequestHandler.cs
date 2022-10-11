@@ -11,6 +11,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using System.Threading.Tasks;
     using ContributorLicenseAgreement.Core.GitHubLinkClient;
     using ContributorLicenseAgreement.Core.Handlers.Helpers;
+    using ContributorLicenseAgreement.Core.Handlers.Model;
     using ContributorLicenseAgreement.Core.Primitives.Data;
     using GitOps.Abstractions;
     using GitOps.Apps.Abstractions.AppEventHandler;
@@ -131,31 +132,15 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
         private async Task<bool> HasSignedClaAsync(AppOutput appOutput, GitOpsPayload gitOpsPayload, bool autoSignMsftEmployee, string claLink)
         {
-            var gitHubUser = gitOpsPayload.PullRequest.User;
-
-            var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(ClaHelper.GenerateKey(gitHubUser, claLink));
+            var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(ClaHelper.GenerateKey(gitOpsPayload.PullRequest.User, claLink));
 
             if (cla == null || (cla.Employee && cla.MsftMail == null))
             {
-                if (!autoSignMsftEmployee)
+                cla = await TryCreateCla(appOutput, gitOpsPayload, autoSignMsftEmployee, claLink);
+                if (cla == null)
                 {
                     return false;
                 }
-
-                var gitHubLink = await gitHubLinkClient.GetLink(gitHubUser);
-                if (gitHubLink?.GitHub == null)
-                {
-                    return false;
-                }
-
-                cla = claHelper.CreateCla(true, gitHubUser, appOutput, "Microsoft", claLink, msftMail: gitHubLink.Aad.UserPrincipalName);
-                logger.LogInformation("CLA signed for GitHub-user: {Cla}", cla);
-                loggingHelper.LogClaSigned(
-                    cla,
-                    gitOpsPayload.PullRequest.User,
-                    gitOpsPayload.PlatformContext.OrganizationName,
-                    gitOpsPayload.PlatformContext.RepositoryName,
-                    gitOpsPayload.PullRequest.Number);
             }
 
             if (!cla.Employee)
@@ -163,23 +148,60 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 var timestamp = System.DateTimeOffset.Now.ToUnixTimeMilliseconds();
                 return cla.Expires == null || cla.Expires > timestamp;
             }
-            else
-            {
-                ResolvedUser user = null;
-                await Policy
-                    .Handle<Exception>()
-                    .OrResult<ResolvedUser>(r => r == null)
-                    .WaitAndRetryAsync(
-                        3,
-                        retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
-                    .ExecuteAsync(async () =>
-                    {
-                        user = await aadRequestClient.ResolveUserAsync(cla.MsftMail);
-                        return user;
-                    });
 
-                return user is { WasResolved: true };
+            if (await IsStillEmployed(cla))
+            {
+                return true;
             }
+
+            logger.LogInformation("Unable to resolve {Sender} with aad. Trying to re-create cla", gitOpsPayload.PullRequest.User);
+
+            cla = await TryCreateCla(appOutput, gitOpsPayload, autoSignMsftEmployee, claLink);
+
+            return cla != null && await IsStillEmployed(cla);
+        }
+
+        private async Task<bool> IsStillEmployed(SignedCla cla)
+        {
+            ResolvedUser user = null;
+            await Policy
+                .Handle<Exception>()
+                .OrResult<ResolvedUser>(r => r == null)
+                .WaitAndRetryAsync(
+                    3,
+                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+                .ExecuteAsync(async () =>
+                {
+                    user = await aadRequestClient.ResolveUserAsync(cla.MsftMail);
+                    return user;
+                });
+
+            return user is { WasResolved: true };
+        }
+
+        private async Task<SignedCla> TryCreateCla(AppOutput appOutput, GitOpsPayload gitOpsPayload, bool autoSignMsftEmployee, string claLink)
+        {
+            var gitHubUser = gitOpsPayload.PullRequest.User;
+            if (!autoSignMsftEmployee)
+            {
+                return null;
+            }
+
+            var gitHubLink = await gitHubLinkClient.GetLink(gitHubUser);
+            if (gitHubLink?.GitHub == null)
+            {
+                return null;
+            }
+
+            var cla = claHelper.CreateCla(true, gitHubUser, appOutput, "Microsoft", claLink, msftMail: gitHubLink.Aad.UserPrincipalName);
+            logger.LogInformation("CLA signed for GitHub-user: {Cla}", cla);
+            loggingHelper.LogClaSigned(
+                cla,
+                gitOpsPayload.PullRequest.User,
+                gitOpsPayload.PlatformContext.OrganizationName,
+                gitOpsPayload.PlatformContext.RepositoryName,
+                gitOpsPayload.PullRequest.Number);
+            return cla;
         }
     }
 }
