@@ -124,7 +124,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
         private static bool NeedsLicense(Cla primitive, PullRequest pullRequest)
         {
-            return !primitive.BypassUsers.Contains(pullRequest.User)
+            return !pullRequest.User.Contains("[bot]")
+                   && !primitive.BypassUsers.Contains(pullRequest.User)
                    && !primitive.BypassOrgs.Contains(pullRequest.OrganizationName)
                    && (pullRequest.Files.Sum(f => f.Changes) >= primitive.MinimalChangeRequired.CodeLines
                        || pullRequest.Files.Count >= primitive.MinimalChangeRequired.Files);
