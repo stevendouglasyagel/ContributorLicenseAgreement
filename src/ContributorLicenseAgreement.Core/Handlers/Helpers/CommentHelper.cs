@@ -13,6 +13,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
     using ContributorLicenseAgreement.Core.Primitives.Data;
     using GitOps.Abstractions;
     using GitOps.Apps.Abstractions.Models;
+    using GitOps.Clients.GitHub;
     using GitOps.Clients.GitHub.Configuration;
     using Stubble.Core.Builders;
     using YamlDotNet.Serialization;
@@ -21,11 +22,16 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
     public class CommentHelper
     {
         private readonly PlatformAppFlavorSettings flavorSettings;
+        private readonly IGitHubClientAdapterFactory clientAdapterFactory;
         private readonly IHttpClientFactory httpClientFactory;
 
-        public CommentHelper(PlatformAppFlavorSettings flavorSettings, IHttpClientFactory httpClientFactory)
+        public CommentHelper(
+            PlatformAppFlavorSettings flavorSettings,
+            IGitHubClientAdapterFactory clientAdapterFactory,
+            IHttpClientFactory httpClientFactory)
         {
             this.flavorSettings = flavorSettings;
+            this.clientAdapterFactory = clientAdapterFactory;
             this.httpClientFactory = httpClientFactory;
         }
 
@@ -33,7 +39,19 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
         {
             if (payload.PlatformContext.ActionType == PlatformEventActions.Synchronize)
             {
-                return new Comment { KeepHistory = true };
+                var ghClient = await clientAdapterFactory.GetGitHubClientAdapterAsync(
+                    payload.PlatformContext.OrganizationName,
+                    payload.PlatformContext.Dns);
+
+                var comments = await ghClient.GetIssueCommentsAsync(long.Parse(payload.PlatformContext.RepositoryId), payload.PullRequest.Number);
+
+                foreach (var comment in comments)
+                {
+                    if (comment.User.Login.Equals($"{flavorSettings[payload.PlatformContext.Dns].Name}[bot]") && comment.Body.Contains("please read the following Contributor License Agreement(CLA)."))
+                    {
+                        return new Comment { KeepHistory = true };
+                    }
+                }
             }
 
             if (cla)
