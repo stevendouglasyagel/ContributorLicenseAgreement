@@ -37,7 +37,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
 
         internal async Task<Comment> GenerateClaCommentAsync(Cla primitive, GitOpsPayload payload, bool cla, string gitHubUser)
         {
-            if (payload.PlatformContext.ActionType == PlatformEventActions.Synchronize)
+            if (payload.PlatformContext.ActionType == PlatformEventActions.Synchronize && !cla)
             {
                 var ghClient = await clientAdapterFactory.GetGitHubClientAdapterAsync(
                     payload.PlatformContext.OrganizationName,
