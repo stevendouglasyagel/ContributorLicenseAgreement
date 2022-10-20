@@ -30,22 +30,28 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             this.logger = logger;
         }
 
-        internal async Task UpdateChecksAsync(GitOpsPayload gitOpsPayload, bool hasCla, string gitHubUser, string claLink)
+        internal async Task<List<Check>> UpdateChecksAsync(GitOpsPayload gitOpsPayload, bool hasCla, string gitHubUser, string claLink)
         {
             var shas = await appState.ReadState<List<Check>>($"{Constants.Check}-{ClaHelper.GenerateKey(gitHubUser, claLink)}");
 
             if (shas == null)
             {
-                return;
+                return null;
             }
 
+            var checks = new List<Check>();
             foreach (var check in shas)
             {
-                await CreateCheckAsync(gitOpsPayload, hasCla, check);
+                if (await CreateCheckAsync(gitOpsPayload, hasCla, check))
+                {
+                    checks.Add(check);
+                }
             }
+
+            return checks;
         }
 
-        internal async Task CreateCheckAsync(GitOpsPayload gitOpsPayload, bool hasCla, Check check)
+        internal async Task<bool> CreateCheckAsync(GitOpsPayload gitOpsPayload, bool hasCla, Check check)
         {
             var client = await clientAdapterFactory.GetGitHubClientAdapterAsync(
                 check.InstallationId,
@@ -66,10 +72,12 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             try
             {
                 await client.CreateCheckRunAsync(check.RepoId, checkRun);
+                return true;
             }
             catch
             {
                 logger.LogInformation("Unable to create check with sha: {Sha}", check.Sha);
+                return false;
             }
         }
 
