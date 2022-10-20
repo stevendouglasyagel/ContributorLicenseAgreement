@@ -2,12 +2,12 @@
 
 ## What is CLA?
 
-CLA is a tool that allows outside contributors to sign a contribution license agreement (cla), an important license protection for Microsoft and our contributors. Signing this agreement allows external contributors to contribute code to Microsoft open-source repos. It is built on the [Microsoft GitHub Policy Service](https://github.com/microsoft/gitops) platform.
+CLA is a tool that allows outside contributors to sign a contribution license agreement (cla), an important license protection for Microsoft and our contributors. Signing this agreement allows external contributors to contribute code to Microsoft open-source repos. It is built on the Microsoft GitHub Policy Service platform.
 
 ## Usage
 
 To use CLA, you need to define a [cla.yml](src/ContributorLicenseAgreement.Core.Tests/Data/cla.yml)/[Microsoft GitHub CLA](https://github.com/microsoft/.github/blob/main/policies/cla.yml) file on org level (example YAML file). This YAML file should define how the CLA should act, the content of the license agreement, and which accounts are exempt from signing.
-In addition, the *Microsoft GitHub Policy Service* needs to be installed for your organization. For details, visit https://github.com/microsoft/gitops.
+In addition, the *Microsoft GitHub Policy Service* needs to be installed for your organization.
 
 ### cla.yml - required properties
 - **content**: the contribution licence agreement the author should sign.
