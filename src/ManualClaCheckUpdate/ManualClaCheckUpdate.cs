@@ -13,7 +13,6 @@ namespace ManualClaCheckUpdate
     using GitOps.Clients.Azure.Telemetry;
     using GitOps.Clients.GitHub;
     using GitOps.Clients.GitHub.Configuration;
-    using GitOps.Tools.DifferenceChecker;
     using Microsoft.Extensions.DependencyInjection;
     using Octokit;
 
