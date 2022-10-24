@@ -236,7 +236,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             {
                 if (line.StartsWith(name))
                 {
-                    return line;
+                    return line.Trim();
                 }
             }
 
