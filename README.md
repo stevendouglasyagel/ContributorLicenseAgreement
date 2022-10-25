@@ -10,7 +10,7 @@ CLA is a tool that allows outside contributors to sign a contribution license ag
 - If you run on GH Enterprise Cloud, you have to give us(by creating an issue on this repo) the name of your enterprise.
 - Create a .github repo.
 - Add [platformcontext.yml](https://github.com/microsoft/.github/blob/main/policies/platformcontext.yml) under policies folder. You can push this directly.
-- Add [cla.yml](https://github.com/microsoft/.github/blob/main/policies/cla.yml) under policies folder. Create a seperate PR for this, the policy service will create a comment example bellow.
+- Add [cla.yml](https://github.com/microsoft/.github/blob/main/policies/cla.yml) under policies folder. Create a seperate PR for this, the policy service will create a comment example bellow. After you merge the PR, CLA policy will be activated across the entire org.
 ![image](https://user-images.githubusercontent.com/19934057/197821627-3933c109-bbba-4714-b16c-8b457ad2084d.png)
 
 ## Usage
