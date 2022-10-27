@@ -12,6 +12,9 @@ CLA is a tool that allows outside contributors to sign a contribution license ag
 - Add [platformcontext.yml](https://github.com/microsoft/.github/blob/main/policies/platformcontext.yml) under policies folder. You can push this directly.
 - Add [cla.yml](https://github.com/microsoft/.github/blob/main/policies/cla.yml) under policies folder. Create a seperate PR for this, the policy service will create a comment example bellow. After you merge the PR, CLA policy will be activated across the entire org.
 ![image](https://user-images.githubusercontent.com/19934057/197821627-3933c109-bbba-4714-b16c-8b457ad2084d.png)
+- For checks on branch protection make sure you select "any source" or "Microsoft GitHub Policy Service".
+![image](https://user-images.githubusercontent.com/19934057/198332238-66781732-8b4c-4b04-8f05-e7571caec999.png)
+
 
 ## Usage
 
