@@ -31,6 +31,12 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             return $"{gitHubUser}-{claLink}";
         }
 
+        internal static string GenerateRetrievalKey(string gitHubUser, string claLink)
+        {
+            var user = gitHubUser.Replace("[", "%5b").Replace("]", "%5d");
+            return GenerateKey(user, claLink);
+        }
+
         internal SignedCla CreateCla(bool isEmployee, string gitHubUser, AppOutput appOutput, string company, string claLink, string msftMail = null)
         {
             var cla = new ContributorLicenseAgreement.Core.Handlers.Model.SignedCla
@@ -76,7 +82,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
 
         internal async Task<SignedCla> ExpireCla(string gitHubUser, string claLink, bool user = true)
         {
-            var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(GenerateKey(gitHubUser, claLink));
+            var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(GenerateRetrievalKey(gitHubUser, claLink));
             if (cla == null)
             {
                 logger.LogError("No cla to terminate");

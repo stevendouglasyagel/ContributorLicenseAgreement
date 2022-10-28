@@ -92,7 +92,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             switch (commentAction)
             {
                 case CommentAction.Agree:
-                    cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(ClaHelper.GenerateKey(gitOpsPayload.PullRequestComment.User, primitive.Content));
+                    cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(ClaHelper.GenerateRetrievalKey(gitOpsPayload.PullRequestComment.User, primitive.Content));
                     if (cla != null && cla.Expires == null)
                     {
                         logger.LogInformation("Cla already signed for user: {User}", gitOpsPayload.PullRequestComment.User);

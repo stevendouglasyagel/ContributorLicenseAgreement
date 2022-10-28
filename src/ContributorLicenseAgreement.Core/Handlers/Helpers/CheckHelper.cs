@@ -32,7 +32,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
 
         internal async Task<List<Check>> UpdateChecksAsync(GitOpsPayload gitOpsPayload, bool hasCla, string gitHubUser, string claLink)
         {
-            var shas = await appState.ReadState<List<Check>>($"{Constants.Check}-{ClaHelper.GenerateKey(gitHubUser, claLink)}");
+            var shas = await appState.ReadState<List<Check>>($"{Constants.Check}-{ClaHelper.GenerateRetrievalKey(gitHubUser, claLink)}");
 
             if (shas == null)
             {
@@ -83,12 +83,14 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
 
         internal async Task<States> CleanUpChecks(GitOpsPayload payload, string claLink)
         {
-            var key = $"{Constants.Check}-{ClaHelper.GenerateKey(payload.PullRequest.User, claLink)}";
+            var key = $"{Constants.Check}-{ClaHelper.GenerateRetrievalKey(payload.PullRequest.User, claLink)}";
             var checks = await appState.ReadState<List<Check>>(key);
             if (checks == null)
             {
                 return null;
             }
+
+            key = $"{Constants.Check}-{ClaHelper.GenerateKey(payload.PullRequest.User, claLink)}";
 
             return new States
             {
