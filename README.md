@@ -42,6 +42,10 @@ If your company has an agreement with Microsoft where only certain users are all
 
 For each user that you want to allow making contributions, add the github username as a line in the csv file (no commas).
 
+### List of Approved Bots
+In order to allow bots to create and merge pull requests, they must be pre-approved. Pre-approving bots is done by adding the bot name to the *approvedBos.csv* file located in the [cla-approved-bots](https://github.com/microsoft/cla-approved-bots) repo.
+
+
 ## Commands
 
 Whenever a pull request is created, the CLA check will confirm whether or not the user who opened the PR has 
@@ -53,10 +57,10 @@ To accept the agreement, the user can issue one of the following two commands as
 
 ```
 If you are contributing on behalf of yourself:
-@bot agree
+@microsoft-github-policy-service agree
 
 If you are contributing on behalf of a company:
-@bot agree company="your company"
+@microsoft-github-policy-service agree company="your company"
 ```
 
 ### Terminating
@@ -65,7 +69,7 @@ A user can choose to terminate the signed agreement by issuing the following com
 request that was opened by the same user.
 
 ```
-@bot terminate
+@microsoft-github-policy-service terminate
 ```
 
 ## Contributing
