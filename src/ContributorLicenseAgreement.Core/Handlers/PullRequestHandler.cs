@@ -132,7 +132,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
         private async Task<bool> HasSignedClaAsync(AppOutput appOutput, GitOpsPayload gitOpsPayload, bool autoSignMsftEmployee, string claLink)
         {
-            var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(ClaHelper.GenerateKey(gitOpsPayload.PullRequest.User, claLink));
+            var cla = await appState.ReadState<ContributorLicenseAgreement.Core.Handlers.Model.SignedCla>(ClaHelper.GenerateRetrievalKey(gitOpsPayload.PullRequest.User, claLink));
 
             if (cla == null || (cla.Employee && cla.MsftMail == null))
             {
