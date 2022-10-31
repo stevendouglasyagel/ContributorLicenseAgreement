@@ -38,7 +38,7 @@ In addition, the *Microsoft GitHub Policy Service* needs to be installed for you
 - **--fileName**: approvedUsers.csv	(links to list of users allowed to use CLA, more info below)
 
 ### List of Approved Users
-If your company has an agreement with Microsoft where only certain users are allowed to make contributions on behalf of your company, then you can specify the users via a CSV file titled approvedUsers.csv which should be located inside the company's repo.
+If your company has an agreement with Microsoft where only certain users are allowed to make contributions on behalf of your company, then you can specify the users via a CSV file titled approvedUsers.csv which should be located inside the company's repo. The list is global per CLA content link and has to be specified only once, [example here](https://github.com/microsoft/.github/blob/main/policies/cla.yml).
 
 For each user that you want to allow making contributions, add the github username as a line in the csv file (no commas).
 
