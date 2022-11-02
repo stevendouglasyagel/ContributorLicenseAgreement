@@ -136,11 +136,19 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             if (cla == null || (cla.Employee && cla.MsftMail == null))
             {
-                cla = await TryCreateCla(appOutput, gitOpsPayload, autoSignMsftEmployee, claLink);
-                if (cla == null)
+                var newCla = await TryCreateCla(appOutput, gitOpsPayload, autoSignMsftEmployee, claLink);
+                if (newCla == null)
                 {
+                    if (cla != null)
+                    {
+                        cla = await claHelper.ExpireCla(gitOpsPayload.PullRequest.User, claLink);
+                        appOutput.States = claHelper.GenerateStates(gitOpsPayload.PullRequest.User, claLink, cla);
+                    }
+
                     return false;
                 }
+
+                cla = newCla;
             }
 
             if (!cla.Employee)
