@@ -1,3 +1,9 @@
+<p align="left">
+  <img src="https://github.com/microsoft/contributorlicenseagreement/actions/workflows/build_net_core.yml/badge.svg?branch=main&event=push"></a>
+  <img src="https://github.com/microsoft/contributorlicenseagreement/actions/workflows/publish_all.yml/badge.svg?branch=main&event=push"></a>
+  <img src="https://github.com/microsoft/contributorlicenseagreement/blob/coverage/docs/images/linecoverage.svg"></a>
+</p>
+
 # Contributor License Agreement - CLA 
 
 ## What is CLA?
