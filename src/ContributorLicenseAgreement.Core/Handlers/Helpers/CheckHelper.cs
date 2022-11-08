@@ -30,7 +30,12 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             this.logger = logger;
         }
 
-        internal async Task<List<Check>> UpdateChecksAsync(GitOpsPayload gitOpsPayload, bool hasCla, string gitHubUser, string claLink)
+        internal async Task<List<Check>> UpdateChecksAsync(
+            GitOpsPayload gitOpsPayload,
+            bool hasCla,
+            string gitHubUser,
+            string claLink,
+            string checkSummary)
         {
             var shas = await appState.ReadState<List<Check>>($"{Constants.Check}-{ClaHelper.GenerateRetrievalKey(gitHubUser, claLink)}");
 
@@ -42,7 +47,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             var checks = new List<Check>();
             foreach (var check in shas)
             {
-                if (await CreateCheckAsync(gitOpsPayload, hasCla, check))
+                if (await CreateCheckAsync(gitOpsPayload, hasCla, check, checkSummary))
                 {
                     checks.Add(check);
                 }
@@ -51,7 +56,11 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             return checks;
         }
 
-        internal async Task<bool> CreateCheckAsync(GitOpsPayload gitOpsPayload, bool hasCla, Check check)
+        internal async Task<bool> CreateCheckAsync(
+            GitOpsPayload gitOpsPayload,
+            bool hasCla,
+            Check check,
+            string checkSummary)
         {
             var client = await clientAdapterFactory.GetGitHubClientAdapterAsync(
                 check.InstallationId,
@@ -60,7 +69,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             var checkRun = new NewCheckRun(Constants.CheckName, check.Sha)
             {
                 Status = hasCla ? CheckStatus.Completed : CheckStatus.Queued,
-                Output = new NewCheckRunOutput(hasCla ? Constants.CheckSuccessTitle : Constants.CheckInProgressTitle, Constants.CheckSummary),
+                Output = new NewCheckRunOutput(hasCla ? Constants.CheckSuccessTitle : Constants.CheckInProgressTitle, checkSummary),
                 DetailsUrl = "https://github.com/microsoft/contributorlicenseagreement"
             };
 
