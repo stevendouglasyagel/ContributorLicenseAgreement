@@ -97,7 +97,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
             List<ContributorLicenseAgreement.Core.Handlers.Model.Check> checks = null;
             foreach (var user in removals)
             {
-                checks = await checkHelper.UpdateChecksAsync(gitOpsPayload, false, user, primitive.Content);
+                checks = await checkHelper.UpdateChecksAsync(gitOpsPayload, false, user, primitive.Content, primitive.CheckSummary);
                 states.StateCollection.Add(
                     $"{Constants.Check}-{ClaHelper.GenerateKey(user, primitive.Content)}", checks);
                 var cla = await claHelper.ExpireCla(user, primitive.Content, false);
@@ -109,7 +109,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             foreach (var cla in clas)
             {
-                checks = await checkHelper.UpdateChecksAsync(gitOpsPayload, true, cla.GitHubUser, primitive.Content);
+                checks = await checkHelper.UpdateChecksAsync(gitOpsPayload, true, cla.GitHubUser, primitive.Content, primitive.CheckSummary);
                 states.StateCollection.Add(
                     $"{Constants.Check}-{ClaHelper.GenerateKey(cla.GitHubUser, primitive.Content)}", checks);
                 logger.LogInformation(

@@ -31,6 +31,8 @@ namespace ContributorLicenseAgreement.Core.Primitives.Data
 
         public List<CompanyRepo> SignRepos { get; set; } = new List<CompanyRepo>();
 
+        public string CheckSummary { get; set; } = Constants.CheckSummary;
+
         public bool AutoSignMsftEmployee { get; set; }
     }
 }

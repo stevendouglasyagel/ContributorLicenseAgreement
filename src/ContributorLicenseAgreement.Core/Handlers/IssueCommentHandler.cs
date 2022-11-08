@@ -100,7 +100,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
                     }
 
                     cla = claHelper.CreateCla(false, gitOpsPayload.PullRequestComment.User, appOutput, company, primitive.Content);
-                    checks = await checkHelper.UpdateChecksAsync(gitOpsPayload, true, gitOpsPayload.PullRequestComment.User, primitive.Content);
+                    checks = await checkHelper.UpdateChecksAsync(gitOpsPayload, true, gitOpsPayload.PullRequestComment.User, primitive.Content, primitive.CheckSummary);
                     appOutput.States.StateCollection.Add(
                         $"{Constants.Check}-{ClaHelper.GenerateKey(gitOpsPayload.PullRequestComment.User, primitive.Content)}", checks);
                     logger.LogInformation(
@@ -125,7 +125,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
                     appOutput.States = claHelper.GenerateStates(gitOpsPayload.PullRequestComment.User, primitive.Content, cla);
                     appOutput.Comment = await commentHelper.GenerateClaCommentAsync(primitive, gitOpsPayload, false, gitOpsPayload.PullRequestComment.User);
-                    checks = await checkHelper.UpdateChecksAsync(gitOpsPayload, false, gitOpsPayload.PullRequestComment.User, primitive.Content);
+                    checks = await checkHelper.UpdateChecksAsync(gitOpsPayload, false, gitOpsPayload.PullRequestComment.User, primitive.Content, primitive.CheckSummary);
                     appOutput.States.StateCollection.Add(
                         $"{Constants.Check}-{ClaHelper.GenerateKey(gitOpsPayload.PullRequestComment.User, primitive.Content)}", checks);
                     logger.LogInformation("CLA terminated for GitHub-user: {Cla}", cla);

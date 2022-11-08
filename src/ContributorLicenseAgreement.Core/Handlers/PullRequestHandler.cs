@@ -97,7 +97,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 await checkHelper.CreateCheckAsync(
                     gitOpsPayload,
                     hasCla,
-                    check);
+                    check,
+                    primitive.CheckSummary);
 
                 appOutput.States ??= new States
                 {
@@ -114,7 +115,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 await checkHelper.CreateCheckAsync(
                     gitOpsPayload,
                     true,
-                    new Check { Sha = gitOpsPayload.PullRequest.Sha, RepoId = long.Parse(gitOpsPayload.PullRequest.RepositoryId), InstallationId = gitOpsPayload.PlatformContext.InstallationId });
+                    new Check { Sha = gitOpsPayload.PullRequest.Sha, RepoId = long.Parse(gitOpsPayload.PullRequest.RepositoryId), InstallationId = gitOpsPayload.PlatformContext.InstallationId },
+                    primitive.CheckSummary);
             }
 
             appOutput.Conclusion = Conclusion.Success;
