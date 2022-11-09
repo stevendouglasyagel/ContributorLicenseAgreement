@@ -38,6 +38,7 @@ In addition, the *Microsoft GitHub Policy Service* needs to be installed for you
 - **bypassOrgs**: defines the orgs for which the cla check is omitted.
 - **prohibitedCompanies**: defines the companies for which users cannot sign a cla.
 - **autoSignMsftEmployee**: if set to true, Microsoft employees will not be asked to sign a cla.
+- **checkSummary**: defines the check summary text shown.
 - **signRepos**:	repoName, companyName, & fileName (this section is relevant only for the list of partners that have signed the CLA for their employees)
 - **--repoName**:	repository that lives in same organization as the policy and contains approvedUsers.csv
 - **--companyName**:	name of the company the CLA is for (stored in our CLA database)
