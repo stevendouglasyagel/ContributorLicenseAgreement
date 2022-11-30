@@ -168,14 +168,14 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             cla = await TryCreateCla(appOutput, gitOpsPayload, autoSignMsftEmployee, claLink);
 
-            if (cla != null && !(await IsStillEmployed(cla)))
+            if (cla == null || !(await IsStillEmployed(cla)))
             {
                 cla = await claHelper.ExpireCla(gitOpsPayload.PullRequest.User, claLink);
                 appOutput.States = claHelper.GenerateStates(gitOpsPayload.PullRequest.User, claLink, cla);
                 return false;
             }
 
-            return cla != null && await IsStillEmployed(cla);
+            return await IsStillEmployed(cla);
         }
 
         private async Task<bool> IsStillEmployed(SignedCla cla)
