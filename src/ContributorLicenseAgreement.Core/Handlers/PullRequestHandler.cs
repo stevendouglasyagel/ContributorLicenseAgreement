@@ -9,7 +9,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using ContributorLicenseAgreement.Core.GitHubLinkClient;
     using ContributorLicenseAgreement.Core.Handlers.Helpers;
     using ContributorLicenseAgreement.Core.Handlers.Model;
     using ContributorLicenseAgreement.Core.Primitives.Data;
@@ -18,6 +17,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Apps.Abstractions.AppStates;
     using GitOps.Apps.Abstractions.Models;
     using GitOps.Clients.Aad;
+    using GitOps.Clients.Ospo;
     using Microsoft.Extensions.Logging;
     using Polly;
     using Check = ContributorLicenseAgreement.Core.Handlers.Model.Check;
@@ -27,7 +27,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
     {
         private readonly AppState appState;
         private readonly IAadRequestClient aadRequestClient;
-        private readonly IGitHubLinkRestClient gitHubLinkClient;
+        private readonly IOSPOGitHubLinkRestClient gitHubLinkClient;
         private readonly ClaHelper claHelper;
         private readonly CheckHelper checkHelper;
         private readonly CommentHelper commentHelper;
@@ -37,7 +37,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
         public PullRequestHandler(
             AppState appState,
             IAadRequestClient aadRequestClient,
-            IGitHubLinkRestClient gitHubLinkClient,
+            IOSPOGitHubLinkRestClient gitHubLinkClient,
             ClaHelper claHelper,
             CheckHelper checkHelper,
             CommentHelper commentHelper,
