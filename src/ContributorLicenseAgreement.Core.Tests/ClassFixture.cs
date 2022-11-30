@@ -9,8 +9,6 @@ namespace ContributorLicenseAgreement.Core.Tests
     using System.Collections.Generic;
     using System.IO;
     using System.Net.Http;
-    using ContributorLicenseAgreement.Core.GitHubLinkClient;
-    using ContributorLicenseAgreement.Core.GitHubLinkClient.Model;
     using ContributorLicenseAgreement.Core.Handlers;
     using ContributorLicenseAgreement.Core.Handlers.Helpers;
     using ContributorLicenseAgreement.Core.Handlers.Model;
@@ -21,6 +19,8 @@ namespace ContributorLicenseAgreement.Core.Tests
     using GitOps.Clients.Azure.BlobStorage;
     using GitOps.Clients.GitHub;
     using GitOps.Clients.GitHub.Configuration;
+    using GitOps.Clients.Ospo;
+    using GitOps.Clients.Ospo.Models;
     using GitOps.Primitives;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -70,7 +70,7 @@ namespace ContributorLicenseAgreement.Core.Tests
                 .ReturnsAsync(File.ReadAllText("Data/cla2.yml"));
             mockBlobStorage.Setup(f => f.ListBlobs(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<Uri> { new Uri("https://test.com/policies/microsoft.githubenterprise.com/startclean-test/gitopstest-donotdelete/orgpolicies"), new Uri("https://test.com/policies/microsoft.githubenterprise.com//test/orgpolicies") });
-            var mockGitHubLinkClient = new Mock<IGitHubLinkRestClient>();
+            var mockGitHubLinkClient = new Mock<IOSPOGitHubLinkRestClient>();
             mockGitHubLinkClient.Setup(f => f.GetLink("user1"))
                 .ReturnsAsync(new GitHubLink { GitHub = new GitHubUser { Id = 1, Login = "user1" }, Aad = new AadUser { Alias = "user1", UserPrincipalName = "user1@microsoft.com" } });
 
@@ -201,25 +201,16 @@ namespace ContributorLicenseAgreement.Core.Tests
                 }
             };
 
-            var legacyClaSettings = new LegacyClaSettings
-            {
-                AppId = 1,
-                AppName = "test",
-                Enabled = false,
-                PrivateKey = string.Empty
-            };
-
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton<PrimitiveCollection>();
             serviceCollection.RegisterAppEventHandlerOrchestrator();
             serviceCollection.AddSingleton<ILogger<CLA>>(mockLogger.Object);
             serviceCollection.AddSingleton<IAadRequestClient>(mockAadClient.Object);
             serviceCollection.AddSingleton<IGitHubClientAdapterFactory>(mockFactory.Object);
-            serviceCollection.AddSingleton<IGitHubLinkRestClient>(mockGitHubLinkClient.Object);
+            serviceCollection.AddSingleton<IOSPOGitHubLinkRestClient>(mockGitHubLinkClient.Object);
             serviceCollection.AddSingleton<IBlobStorage>(mockBlobStorage.Object);
             serviceCollection.AddSingleton(platformAppFlavorSettings);
             serviceCollection.AddSingleton<IHttpClientFactory>(mockIHttpClientFactory.Object);
-            serviceCollection.AddSingleton(legacyClaSettings);
 
             ServiceProvider = serviceCollection.BuildServiceProvider();
             var appState = new AppState(mockBlobStorage.Object, new Lazy<AppBase>(() => ServiceProvider.GetRequiredService<CLA>()));

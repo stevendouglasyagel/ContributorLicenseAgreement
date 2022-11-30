@@ -30,6 +30,7 @@
   <ItemGroup>
     <PackageReference Include="GitOps.Apps.Abstractions" Version="*" />
     <PackageReference Include="GitOps.Apps.Debugger" Version="*" />
+    <PackageReference Include="GitOps.Clients.Ospo" Version="*" />
     <PackageReference Include="GitOps.Primitives" Version="*" />
     <PackageReference Include="Polly" Version="*" />
     <PackageReference Include="Stubble.Core" Version="1.9.3" />

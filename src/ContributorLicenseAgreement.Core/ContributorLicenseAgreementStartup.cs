@@ -1,12 +1,13 @@
 ﻿namespace ContributorLicenseAgreement.Core
 {
     using System.Diagnostics.CodeAnalysis;
-    using ContributorLicenseAgreement.Core.GitHubLinkClient;
     using ContributorLicenseAgreement.Core.Handlers;
     using ContributorLicenseAgreement.Core.Handlers.Helpers;
     using GitOps.Apps.Abstractions;
     using GitOps.Clients.Azure.BlobStorage;
     using GitOps.Clients.GitHub.Configuration;
+    using GitOps.Clients.Ospo;
+    using GitOps.Clients.Ospo.Configuration;
     using GitOps.Common.Library.Extensions;
     using GitOps.Primitives;
     using Microsoft.Extensions.Configuration;
@@ -31,9 +32,10 @@
                     azureBlobSettings.AccountName,
                     azureBlobSettings.AccountKey,
                     true));
-            var gitHubLinkSettings = configuration.GetSection(nameof(OspoGitHubLinkSettings)).Get<OspoGitHubLinkSettings>();
+            var gitHubLinkSettings =
+                configuration.GetSection(nameof(OspoGitHubLinkSettings)).Get<OspoGitHubLinkSettings>();
             serviceCollection.AddSingleton<OspoGitHubLinkSettings>(gitHubLinkSettings);
-            serviceCollection.AddSingleton<IGitHubLinkRestClient, GitHubLinkRestClient>();
+            serviceCollection.AddSingleton<IOSPOGitHubLinkRestClient, OSPOGitHubLinkRestClient>();
             serviceCollection.AddSingleton<PrimitiveCollection>();
             serviceCollection.RegisterAad(configuration);
             serviceCollection.AddSingleton<PullRequestHandler>();
@@ -45,11 +47,6 @@
             serviceCollection.AddSingleton<LoggingHelper>();
             serviceCollection.Configure<PlatformAppFlavorSettings>(
                 configuration.GetSection(nameof(PlatformAppFlavorSettings)));
-
-            // Legacy CLA app config. Remove once legacy app is disabled.
-            serviceCollection.AddSingleton(configuration.GetSection(nameof(LegacyClaSettings)).Get<LegacyClaSettings>());
-            serviceCollection.AddSingleton<LegacyClaCheckHandler>();
-            serviceCollection.AddSingleton<LegacyClaCommentHandler>();
         }
     }
 }
