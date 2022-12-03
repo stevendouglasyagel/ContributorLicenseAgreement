@@ -55,10 +55,10 @@ jobs:
         git push origin HEAD:coverage
         
     - name: Count Lines of Code (cloc)
-      if: github.ref == 'refs/heads/main'
+      if: github.ref != 'refs/heads/main'
       uses: djdefi/cloc-action@main
     - name: Update cloc file
-      if: github.ref == 'refs/heads/main'
+      if: github.ref != 'refs/heads/main'
       run: |
         git checkout cloc || git checkout -b cloc
         mkdir -p docs/cloc
