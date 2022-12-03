@@ -1,20 +1,19 @@
-      28 text files.
-classified 26 files      26 unique files.                              
+      50 text files.
+classified 48 files      48 unique files.                              
        3 files ignored.
 
-github.com/AlDanial/cloc v 1.94  T=0.04 s (626.2 files/s, 17318.2 lines/s)
+github.com/AlDanial/cloc v 1.94  T=0.06 s (843.9 files/s, 48716.6 lines/s)
 ------------------------------------------------------------------------------------
 Language                          files          blank        comment           code
 ------------------------------------------------------------------------------------
-C#                                    9             31             46            163
-YAML                                  3             20              3             94
+C#                                   26            254            126           1636
+YAML                                  5             21              1            211
+Markdown                              4             59              0            120
+MSBuild script                        4             19              0            100
+Visual Studio Solution                1              1              1             85
 XML                                   3             14              6             71
-Markdown                              4             38              0             70
-MSBuild script                        2             12              0             65
-Visual Studio Solution                1              1              1             52
+Mustache                              3              8              0             21
 JSON                                  2              0              0             17
-Mustache                              1              1              0             13
-SVG                                   1              0              0              1
 ------------------------------------------------------------------------------------
-SUM:                                 26            117             56            546
+SUM:                                 48            376            134           2261
 ------------------------------------------------------------------------------------
