@@ -53,4 +53,19 @@ jobs:
         git add docs/images/linecoverage.svg
         git commit -m 'Auto update coverage badge' || exit 0
         git push origin HEAD:coverage
+        
+    - name: Count Lines of Code (cloc)
+      if: github.ref == 'refs/heads/main'
+      uses: djdefi/cloc-action@main
+    - name: Update cloc file
+      if: github.ref == 'refs/heads/main'
+      run: |
+        git checkout cloc || git checkout -b cloc
+        mkdir -p docs/cloc
+        cp cloc.txt docs/cloc/cloc.txt
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add docs/cloc/cloc.txt
+        git commit -m 'Auto update cloc info' || exit 0
+        git push origin HEAD:cloc
     

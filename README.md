@@ -4,6 +4,8 @@
   <img src="https://github.com/microsoft/contributorlicenseagreement/blob/coverage/docs/images/linecoverage.svg"></a>
 </p>
 
+ [Count Lines Of Code](https://github.com/microsoft/ContributorLicenseAgreement/blob/cloc/docs/cloc/cloc.txt)
+
 # Contributor License Agreement - CLA 
 
 ## What is CLA?
