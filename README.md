@@ -24,7 +24,7 @@ CLA is a tool that allows outside contributors to sign a contribution license ag
 ![image](https://user-images.githubusercontent.com/19934057/198332238-66781732-8b4c-4b04-8f05-e7571caec999.png)
 
 
-## Usage
+## Usage    
 
 To use CLA, you need to define a [cla.yml](src/ContributorLicenseAgreement.Core.Tests/Data/cla.yml)/[Microsoft GitHub CLA](https://github.com/microsoft/.github/blob/main/policies/cla.yml) file on org level (example YAML file). This YAML file should define how the CLA should act, the content of the license agreement, and which accounts are exempt from signing.
 In addition, the *Microsoft GitHub Policy Service* needs to be installed for your organization.
