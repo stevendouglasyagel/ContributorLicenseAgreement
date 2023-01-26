@@ -18,6 +18,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Apps.Abstractions.Models;
     using GitOps.Clients.GitHub;
     using GitOps.Clients.GitHub.Configuration;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Check = ContributorLicenseAgreement.Core.Handlers.Model.Check;
 
@@ -86,9 +87,17 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
-            var (commentAction, company) = ParseComment(gitOpsPayload.PullRequestComment.Body, gitOpsPayload.PlatformContext.Dns, primitive);
+            var gitHubAppName = await factory.GetAppNameBasedOnInstallationId(
+                gitOpsPayload.PlatformContext.OrganizationName,
+                gitOpsPayload.PlatformContext.InstallationId) ?? flavorSettings[gitOpsPayload.PlatformContext.Dns].Name;
+
+            var (commentAction, company) = ParseComment(
+                gitOpsPayload.PullRequestComment.Body,
+                gitHubAppName,
+                primitive);
+
             SignedCla cla;
-            List<Check> checks = null;
+            List<Check> checks;
             switch (commentAction)
             {
                 case CommentAction.Agree:
@@ -174,9 +183,12 @@ namespace ContributorLicenseAgreement.Core.Handlers
             }
         }
 
-        private (CommentAction, string) ParseComment(string comment, string host, Cla primitive)
+        private (CommentAction, string) ParseComment(
+            string comment,
+            string gitHubAppName,
+            Cla primitive)
         {
-            var bot = $"@{flavorSettings[host].Name}";
+            var bot = $"@{gitHubAppName}";
             var cleanedComment = ExtractPolicyServiceLine(comment, bot);
             var pattern = @"[ ](?=(?:[^""]*""[^""]*"")*[^""]*$)";
             var regex = new Regex(pattern);
