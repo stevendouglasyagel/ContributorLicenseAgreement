@@ -75,7 +75,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             };
 
             return GenerateComment(
-                $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA.mustache", mustacheParams);
+                $"{typeof(CLA).Namespace}.CLA.mustache", mustacheParams);
         }
 
         internal Comment GenerateFailureComment(string gitHubUser, string company)
@@ -87,7 +87,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             };
 
             return GenerateComment(
-                $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA-Error-Company.mustache", mustacheParams);
+                $"{typeof(CLA).Namespace}.CLA-Error-Company.mustache", mustacheParams);
         }
 
         internal Comment GenerateFailureComment(GitOpsPayload payload, string gitHubUser)
@@ -103,7 +103,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
             };
 
             return GenerateComment(
-                $"{typeof(ContributorLicenseAgreement.Core.CLA).Namespace}.CLA-Error.mustache", mustacheParams);
+                $"{typeof(CLA).Namespace}.CLA-Error.mustache", mustacheParams);
         }
 
         internal Comment GenerateComment(string fileName, object mustacheParams)
