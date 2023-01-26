@@ -86,9 +86,17 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
-            var (commentAction, company) = ParseComment(gitOpsPayload.PullRequestComment.Body, gitOpsPayload.PlatformContext.Dns, primitive);
+            var gitHubAppName = await factory.GetAppNameBasedOnInstallationId(
+                gitOpsPayload.PlatformContext.OrganizationName,
+                gitOpsPayload.PlatformContext.InstallationId) ?? flavorSettings[gitOpsPayload.PlatformContext.Dns].Name;
+
+            var (commentAction, company) = ParseComment(
+                gitOpsPayload.PullRequestComment.Body,
+                gitHubAppName,
+                primitive);
+
             SignedCla cla;
-            List<Check> checks = null;
+            List<Check> checks;
             switch (commentAction)
             {
                 case CommentAction.Agree:
@@ -174,17 +182,19 @@ namespace ContributorLicenseAgreement.Core.Handlers
             }
         }
 
-        private (CommentAction, string) ParseComment(string comment, string host, Cla primitive)
+        private (CommentAction, string) ParseComment(
+            string comment,
+            string gitHubAppName,
+            Cla primitive)
         {
-            var bot = $"@{flavorSettings[host].Name}";
-            var cleanedComment = ExtractPolicyServiceLine(comment, bot);
+            var cleanedComment = ExtractPolicyServiceLine(comment, gitHubAppName);
             var pattern = @"[ ](?=(?:[^""]*""[^""]*"")*[^""]*$)";
             var regex = new Regex(pattern);
             var tokens = regex.Split(cleanedComment);
 
             CommentAction commentAction = CommentAction.Failure;
 
-            if (tokens.Length >= 2 && tokens.First().StartsWith(bot))
+            if (tokens.Length >= 2 && tokens.First().StartsWith(gitHubAppName))
             {
                 switch (tokens[1])
                 {
