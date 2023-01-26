@@ -194,7 +194,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             CommentAction commentAction = CommentAction.Failure;
 
-            if (tokens.Length >= 2 && tokens.First().StartsWith(gitHubAppName))
+            if (tokens.Length >= 2 && tokens.First().StartsWith($"@{gitHubAppName}"))
             {
                 switch (tokens[1])
                 {
