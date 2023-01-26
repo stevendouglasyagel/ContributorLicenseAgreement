@@ -196,7 +196,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             CommentAction commentAction = CommentAction.Failure;
 
-            if (tokens.Length >= 2 && tokens.First().StartsWith($"@{bot}"))
+            if (tokens.Length >= 2 && tokens.First().StartsWith(bot))
             {
                 switch (tokens[1])
                 {
