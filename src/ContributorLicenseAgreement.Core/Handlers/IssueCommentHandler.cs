@@ -18,6 +18,7 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Apps.Abstractions.Models;
     using GitOps.Clients.GitHub;
     using GitOps.Clients.GitHub.Configuration;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Check = ContributorLicenseAgreement.Core.Handlers.Model.Check;
 
@@ -187,14 +188,15 @@ namespace ContributorLicenseAgreement.Core.Handlers
             string gitHubAppName,
             Cla primitive)
         {
-            var cleanedComment = ExtractPolicyServiceLine(comment, gitHubAppName);
+            var bot = $"@{gitHubAppName}";
+            var cleanedComment = ExtractPolicyServiceLine(comment, bot);
             var pattern = @"[ ](?=(?:[^""]*""[^""]*"")*[^""]*$)";
             var regex = new Regex(pattern);
             var tokens = regex.Split(cleanedComment);
 
             CommentAction commentAction = CommentAction.Failure;
 
-            if (tokens.Length >= 2 && tokens.First().StartsWith($"@{gitHubAppName}"))
+            if (tokens.Length >= 2 && tokens.First().StartsWith($"@{bot}"))
             {
                 switch (tokens[1])
                 {
