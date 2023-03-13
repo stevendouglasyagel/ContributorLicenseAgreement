@@ -31,7 +31,7 @@ In addition, the *Microsoft GitHub Policy Service* needs to be installed for you
 
 ### cla.yml - required properties
 - **content**: the contribution licence agreement the author should sign.
-- **minimalChangeRequired**: files & codeLines
+- **minimalChangeRequired**: defines the minumum changes in files or codelines required to make the policy enforce signing a cla first.
 - **--files**: defines the minimum number of files changed for cla to act.
 - **--codeLines**: defines the minimum number of code lines changed for cla to act.
 
