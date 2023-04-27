@@ -79,6 +79,12 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 return appOutput;
             }
 
+            if (gitOpsPayload.PullRequest.State == PullRequestState.Closed)
+            {
+                logger.LogInformation("Not acting on closed pull request");
+                return appOutput;
+            }
+
             if (NeedsLicense(primitive, gitOpsPayload.PullRequest))
             {
                 logger.LogInformation("License needed for {Sender}", gitOpsPayload.PullRequest.User);
