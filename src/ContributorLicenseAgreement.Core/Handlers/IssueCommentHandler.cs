@@ -18,9 +18,11 @@ namespace ContributorLicenseAgreement.Core.Handlers
     using GitOps.Apps.Abstractions.Models;
     using GitOps.Clients.GitHub;
     using GitOps.Clients.GitHub.Configuration;
-    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Octokit;
     using Check = ContributorLicenseAgreement.Core.Handlers.Model.Check;
+    using PullRequest = GitOps.Abstractions.PullRequest;
+    using PullRequestFile = GitOps.Abstractions.PullRequestFile;
 
     public class IssueCommentHandler : IAppEventHandler
     {
@@ -145,6 +147,27 @@ namespace ContributorLicenseAgreement.Core.Handlers
                         gitOpsPayload.PlatformContext.RepositoryName,
                         gitOpsPayload.PullRequestComment.PullRequestNumber);
                     break;
+                case CommentAction.Rerun:
+                    var client = await factory.GetGitHubClientAdapterAsync(
+                        gitOpsPayload.PlatformContext.InstallationId,
+                        gitOpsPayload.PlatformContext.Dns);
+                    var pr = await client.GetPullRequestAsync(
+                        long.Parse(gitOpsPayload.PlatformContext.RepositoryId),
+                        gitOpsPayload.PullRequestComment.PullRequestNumber);
+                    var files = await client.GetPullRequestFilesAsync(
+                        long.Parse(gitOpsPayload.PlatformContext.RepositoryId),
+                        gitOpsPayload.PullRequestComment.PullRequestNumber);
+                    gitOpsPayload.PullRequest = new PullRequest
+                    {
+                        Number = pr.Number,
+                        Action = PlatformEventActions.Reopened,
+                        User = pr.User.Login,
+                        Sha = pr.Head.Sha,
+                        RepositoryId = gitOpsPayload.PullRequestComment.RepositoryId,
+                        Files = files.Select(f => new PullRequestFile { FileName = f.FileName }).ToList()
+                    };
+                    await claHelper.RunCheck(gitOpsPayload, primitive, appOutput);
+                    break;
                 case CommentAction.Failure:
                     appOutput.Comment = commentHelper.GenerateFailureComment(gitOpsPayload, gitOpsPayload.PullRequestComment.User);
                     logger.LogInformation("Failed CLA sign attempt: {User}", gitOpsPayload.PullRequestComment.User);
@@ -206,6 +229,8 @@ namespace ContributorLicenseAgreement.Core.Handlers
                     case Constants.Terminate:
                         commentAction = CommentAction.Terminate;
                         break;
+                    case Constants.Rerun:
+                        return (CommentAction.Rerun, string.Empty);
                 }
 
                 if (tokens.Length == 3)

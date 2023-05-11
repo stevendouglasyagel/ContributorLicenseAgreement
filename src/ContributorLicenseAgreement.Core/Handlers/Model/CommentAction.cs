@@ -11,6 +11,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Model
         Failure,
         BlockedCompany,
         Terminate,
+        Rerun,
         Noop
     }
 }

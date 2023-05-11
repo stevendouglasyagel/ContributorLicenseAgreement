@@ -14,6 +14,7 @@ namespace ContributorLicenseAgreement.Core
         internal const string CheckInProgressTitle = "Contributor License Agreement is not agreed yet.";
         internal const string Agree = "agree";
         internal const string Terminate = "terminate";
+        internal const string Rerun = "rerun";
         internal const string Company = "company";
     }
 }
