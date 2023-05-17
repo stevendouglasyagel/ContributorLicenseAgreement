@@ -74,7 +74,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
 
         internal async Task RunCheck(GitOpsPayload gitOpsPayload, Cla primitive, AppOutput appOutput)
         {
-            var client = await factory.GetGitHubClientAdapterAsync(gitOpsPayload.PlatformContext.OrganizationName, gitOpsPayload.PlatformContext.Dns);
+            using var client = await factory.GetGitHubClientAdapterAsync(gitOpsPayload.PlatformContext.OrganizationName, gitOpsPayload.PlatformContext.Dns);
             var pr = await client.GetPullRequestAsync(long.Parse(gitOpsPayload.PullRequest.RepositoryId), gitOpsPayload.PullRequest.Number);
             if (NeedsLicense(primitive, gitOpsPayload.PullRequest, pr.Head.Repository.Owner.Login))
             {
