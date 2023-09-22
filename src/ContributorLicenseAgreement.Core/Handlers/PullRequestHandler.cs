@@ -21,32 +21,17 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
     internal class PullRequestHandler : IAppEventHandler
     {
-        private readonly AppState appState;
-        private readonly IAadRequestClient aadRequestClient;
-        private readonly IOSPOGitHubLinkRestClient gitHubLinkClient;
         private readonly ClaHelper claHelper;
         private readonly CheckHelper checkHelper;
-        private readonly CommentHelper commentHelper;
-        private readonly LoggingHelper loggingHelper;
         private readonly ILogger<CLA> logger;
 
         public PullRequestHandler(
-            AppState appState,
-            IAadRequestClient aadRequestClient,
-            IOSPOGitHubLinkRestClient gitHubLinkClient,
             ClaHelper claHelper,
             CheckHelper checkHelper,
-            CommentHelper commentHelper,
-            LoggingHelper loggingHelper,
             ILogger<CLA> logger)
         {
-            this.appState = appState;
-            this.aadRequestClient = aadRequestClient;
-            this.gitHubLinkClient = gitHubLinkClient;
             this.claHelper = claHelper;
             this.checkHelper = checkHelper;
-            this.commentHelper = commentHelper;
-            this.loggingHelper = loggingHelper;
             this.logger = logger;
         }
 

@@ -50,6 +50,7 @@ namespace ContributorLicenseAgreement.Core
             serviceCollection.AddSingleton<CommentHelper>();
             serviceCollection.AddSingleton<CheckHelper>();
             serviceCollection.AddSingleton<LoggingHelper>();
+            serviceCollection.AddSingleton<MergeGroupHandler>();
             serviceCollection.Configure<PlatformAppFlavorSettings>(
                 configuration.GetSection(nameof(PlatformAppFlavorSettings)));
         }
