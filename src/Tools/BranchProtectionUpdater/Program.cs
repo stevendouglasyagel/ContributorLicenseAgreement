@@ -7,6 +7,7 @@ namespace BranchProtectionUpdater
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using CommandLine;
     using GitOps.Clients.Azure.Telemetry;
@@ -18,6 +19,7 @@ namespace BranchProtectionUpdater
     using Microsoft.Extensions.Logging;
     using Microsoft.VisualBasic.CompilerServices;
 
+    [ExcludeFromCodeCoverage]
     public class Program
     {
         private const string Dns = "github.com";

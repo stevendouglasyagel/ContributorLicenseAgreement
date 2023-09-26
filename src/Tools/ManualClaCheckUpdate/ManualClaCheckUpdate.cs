@@ -6,6 +6,7 @@
 namespace ManualClaCheckUpdate
 {
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Net.Http;
     using CommandLine;
     using ContributorLicenseAgreement.Core;
@@ -16,6 +17,7 @@ namespace ManualClaCheckUpdate
     using Microsoft.Extensions.DependencyInjection;
     using Octokit;
 
+    [ExcludeFromCodeCoverage]
     public static class ManualClaCheckUpdate
     {
         private const string Dns = "github.com";

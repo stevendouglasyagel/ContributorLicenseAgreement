@@ -6,8 +6,10 @@
 namespace BranchProtectionUpdater
 {
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using CommandLine;
 
+    [ExcludeFromCodeCoverage]
     internal sealed class Arguments
     {
         [Option('o', "orgName", Required = true, HelpText = "Org name owning the repo.")]
