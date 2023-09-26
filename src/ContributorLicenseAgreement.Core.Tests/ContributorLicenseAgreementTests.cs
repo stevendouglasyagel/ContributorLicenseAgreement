@@ -55,6 +55,7 @@ namespace ContributorLicenseAgreement.Core.Tests
 
         [Theory]
         [InlineData("@gitops-ppe agree")]
+        [InlineData("@gitops-ppe rerun")]
         public async Task IssueCommentHandlerTest(string comment)
         {
             var appOutput = await Comment(comment);
@@ -134,7 +135,8 @@ namespace ContributorLicenseAgreement.Core.Tests
                 PullRequestComment = new PullRequestComment
                 {
                     Body = comment,
-                    User = "user0"
+                    User = "user0",
+                    RepositoryId = "1223"
                 }
             };
 

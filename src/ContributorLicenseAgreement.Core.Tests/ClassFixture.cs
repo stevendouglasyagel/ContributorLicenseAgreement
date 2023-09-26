@@ -9,6 +9,7 @@ namespace ContributorLicenseAgreement.Core.Tests
     using System.Collections.Generic;
     using System.IO;
     using System.Net.Http;
+    using System.Runtime.InteropServices.JavaScript;
     using ContributorLicenseAgreement.Core.Handlers;
     using ContributorLicenseAgreement.Core.Handlers.Helpers;
     using ContributorLicenseAgreement.Core.Handlers.Model;
@@ -116,6 +117,11 @@ namespace ContributorLicenseAgreement.Core.Tests
                 f.UpdateCheckRunAsync(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<CheckRunUpdate>()));
             mockClient.Setup(f =>
                 f.CreateCheckRunAsync(It.IsAny<long>(), It.IsAny<NewCheckRun>())).ReturnsAsync(checkRun);
+            mockClient.Setup(f => f.GetPullRequestFilesAsync(It.IsAny<long>(), It.IsAny<int>()))
+                .ReturnsAsync(new List<PullRequestFile>
+                {
+                    new PullRequestFile(string.Empty, "testFile", string.Empty, 5, 0, 5, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty)
+                });
             mockClient.Setup(f => f.GetPullRequestAsync(It.IsAny<long>(), It.IsAny<int>()))
                 .ReturnsAsync(new PullRequest(
                     1,

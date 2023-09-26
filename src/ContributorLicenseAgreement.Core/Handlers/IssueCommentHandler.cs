@@ -83,12 +83,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
 
             var primitive = primitivesData.First();
 
-            if (!await CheckSenderAsync(gitOpsPayload))
-            {
-                logger.LogInformation("Sender not pr author. Ignoring...");
-                return appOutput;
-            }
-
             var gitHubAppName = await factory.GetAppNameBasedOnInstallationId(
                 gitOpsPayload.PlatformContext.OrganizationName,
                 gitOpsPayload.PlatformContext.InstallationId) ?? flavorSettings[gitOpsPayload.PlatformContext.Dns].Name;
@@ -97,6 +91,38 @@ namespace ContributorLicenseAgreement.Core.Handlers
                 gitOpsPayload.PullRequestComment.Body,
                 gitHubAppName,
                 primitive);
+
+            if (commentAction == CommentAction.Rerun)
+            {
+                var client = await factory.GetGitHubClientAdapterAsync(
+                    gitOpsPayload.PlatformContext.InstallationId,
+                    gitOpsPayload.PlatformContext.Dns);
+                var pr = await client.GetPullRequestAsync(
+                    long.Parse(gitOpsPayload.PlatformContext.RepositoryId),
+                    gitOpsPayload.PullRequestComment.PullRequestNumber);
+                var files = await client.GetPullRequestFilesAsync(
+                    long.Parse(gitOpsPayload.PlatformContext.RepositoryId),
+                    gitOpsPayload.PullRequestComment.PullRequestNumber);
+                gitOpsPayload.PullRequest = new PullRequest
+                {
+                    Number = pr.Number,
+                    Action = PlatformEventActions.Reopened,
+                    User = pr.User.Login,
+                    Sha = pr.Head.Sha,
+                    RepositoryId = gitOpsPayload.PullRequestComment.RepositoryId,
+                    Files = files.Select(f => new PullRequestFile { FileName = f.FileName }).ToList()
+                };
+                await claHelper.RunCheck(gitOpsPayload, primitive, appOutput);
+
+                appOutput.Conclusion = Conclusion.Success;
+                return appOutput;
+            }
+
+            if (!await CheckSenderAsync(gitOpsPayload))
+            {
+                logger.LogInformation("Sender not pr author. Ignoring...");
+                return appOutput;
+            }
 
             SignedCla cla;
             List<Check> checks;
@@ -146,27 +172,6 @@ namespace ContributorLicenseAgreement.Core.Handlers
                         gitOpsPayload.PlatformContext.OrganizationName,
                         gitOpsPayload.PlatformContext.RepositoryName,
                         gitOpsPayload.PullRequestComment.PullRequestNumber);
-                    break;
-                case CommentAction.Rerun:
-                    var client = await factory.GetGitHubClientAdapterAsync(
-                        gitOpsPayload.PlatformContext.InstallationId,
-                        gitOpsPayload.PlatformContext.Dns);
-                    var pr = await client.GetPullRequestAsync(
-                        long.Parse(gitOpsPayload.PlatformContext.RepositoryId),
-                        gitOpsPayload.PullRequestComment.PullRequestNumber);
-                    var files = await client.GetPullRequestFilesAsync(
-                        long.Parse(gitOpsPayload.PlatformContext.RepositoryId),
-                        gitOpsPayload.PullRequestComment.PullRequestNumber);
-                    gitOpsPayload.PullRequest = new PullRequest
-                    {
-                        Number = pr.Number,
-                        Action = PlatformEventActions.Reopened,
-                        User = pr.User.Login,
-                        Sha = pr.Head.Sha,
-                        RepositoryId = gitOpsPayload.PullRequestComment.RepositoryId,
-                        Files = files.Select(f => new PullRequestFile { FileName = f.FileName }).ToList()
-                    };
-                    await claHelper.RunCheck(gitOpsPayload, primitive, appOutput);
                     break;
                 case CommentAction.Failure:
                     appOutput.Comment = commentHelper.GenerateFailureComment(gitOpsPayload, gitOpsPayload.PullRequestComment.User);
