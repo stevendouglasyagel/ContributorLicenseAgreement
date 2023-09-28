@@ -81,6 +81,16 @@ request that was opened by the same user.
 @microsoft-github-policy-service terminate
 ```
 
+### Re-running
+
+In case the CLA app failed to post a status check, users can request a re-run by issuing the following command under a 
+pull request. In this case, it does not matter if the user issuing the command is the pull request author
+or not.
+
+```
+@microsoft-github-policy-service rerun
+```
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
