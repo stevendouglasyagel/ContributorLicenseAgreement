@@ -194,7 +194,7 @@ namespace ContributorLicenseAgreement.Core.Handlers.Helpers
         {
             var cla = await appState.ReadState<SignedCla>(ClaHelper.GenerateRetrievalKey(gitOpsPayload.PullRequest.User, claLink));
 
-            if (cla == null || (cla.Employee && cla.MsftMail == null))
+            if (cla == null || (cla.Employee && string.IsNullOrEmpty(cla.MsftMail)))
             {
                 var newCla = await TryCreateCla(appOutput, gitOpsPayload, autoSignMsftEmployee, claLink);
                 if (newCla == null)
