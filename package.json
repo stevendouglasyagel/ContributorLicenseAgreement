@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "powershell-to-console": "^0.0.3"
+  }
+}
